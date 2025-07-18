@@ -22,6 +22,13 @@ exports.register = async (req, res) => {
         if (existingCompany)
             return res.status(400).json({ message: 'Company already registered' });
 
+        const existingDomain = await User.findOne({ companyDomain });
+        if (existingDomain)
+            return res.status(400).json({ message: 'Company Domain already registered' });
+        const existingID = await User.findOne({ companyID });
+        if (existingID)
+            return res.status(400).json({ message: 'Company ID already registered' });
+
         const hashed = await bcrypt.hash(password, 10);
         const newUser = new User({ companyName, companyDomain, companyID, companyAddress, founded_year, firstName, lastName, email, password: hashed });
         await newUser.save();
