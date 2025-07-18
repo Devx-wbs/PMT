@@ -240,7 +240,7 @@ const Section_a = () => {
 
                     <p className="text-center text-sm text-blue-600 mt-4">
                         Already have an account?{" "}
-                        <Link to="/login" className="hover:underline font-medium">
+                        <Link to="/Login" className="hover:underline font-medium">
                             Sign in
                         </Link>
                     </p>

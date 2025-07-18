@@ -1,9 +1,12 @@
 import React from 'react'
+import Section_a from './Login/Section_a'
 
 const Login = () => {
-  return (
-    <div>Login</div>
-  )
+    return (
+        <>
+            <Section_a />
+        </>
+    )
 }
 
 export default Login
