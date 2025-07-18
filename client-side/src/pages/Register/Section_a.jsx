@@ -118,7 +118,6 @@ const Section_a = () => {
                         {errors.company_Name && <p className="text-sm text-red-500 mt-1">{errors.company_Name}</p>}
                     </div>
 
-                    {/* Company Domain */}
                     <div>
                         <label className="block text-sm font-medium text-gray-700">Company Domain</label>
                         <input
@@ -132,7 +131,6 @@ const Section_a = () => {
                         {errors.companyDomain && <p className="text-sm text-red-500 mt-1">{errors.companyDomain}</p>}
                     </div>
 
-                    {/* Name Fields */}
                     <div className="flex flex-col sm:flex-row sm:space-x-4 space-y-4 sm:space-y-0">
                         <div className="flex-1">
                             <label className="block text-sm font-medium text-gray-700">First Name</label>
@@ -171,7 +169,6 @@ const Section_a = () => {
                         {errors.email && <p className="text-sm text-red-500 mt-1">{errors.email}</p>}
                     </div>
 
-                    {/* Company ID */}
                     <div>
                         <label className="block text-sm font-medium text-gray-700">Company ID</label>
                         <input
@@ -184,7 +181,6 @@ const Section_a = () => {
                         {errors.companyID && <p className="text-sm text-red-500 mt-1">{errors.companyID}</p>}
                     </div>
 
-                    {/* Address */}
                     <div>
                         <label className="block text-sm font-medium text-gray-700">Company Address</label>
                         <input
@@ -197,7 +193,6 @@ const Section_a = () => {
                         {errors.companyAddress && <p className="text-sm text-red-500 mt-1">{errors.companyAddress}</p>}
                     </div>
 
-                    {/* Founded Year */}
                     <div>
                         <label className="block text-sm font-medium text-gray-700">Founded Year</label>
                         <input
@@ -210,7 +205,6 @@ const Section_a = () => {
                         {errors.founded_year && <p className="text-sm text-red-500 mt-1">{errors.founded_year}</p>}
                     </div>
 
-                    {/* Password */}
                     <div>
                         <label className="block text-sm font-medium text-gray-700">Password</label>
                         <input
@@ -223,7 +217,6 @@ const Section_a = () => {
                         {errors.password && <p className="text-sm text-red-500 mt-1">{errors.password}</p>}
                     </div>
 
-                    {/* Confirm Password */}
                     <div>
                         <label className="block text-sm font-medium text-gray-700">Confirm Password</label>
                         <input
@@ -238,7 +231,6 @@ const Section_a = () => {
                         )}
                     </div>
 
-                    {/* Submit Button */}
                     <button
                         type="submit"
                         className="w-full bg-[#0C1125] text-white py-2 rounded-md hover:bg-[#1a1f3b] transition"
@@ -246,7 +238,6 @@ const Section_a = () => {
                         Register
                     </button>
 
-                    {/* Link to Login */}
                     <p className="text-center text-sm text-blue-600 mt-4">
                         Already have an account?{" "}
                         <Link to="/login" className="hover:underline font-medium">
