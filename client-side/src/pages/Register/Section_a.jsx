@@ -58,36 +58,43 @@ const Section_a = () => {
         }
     };
 
-    const registerHandler = async (form) => {
-        try {
-            const obj = JSON.stringify({
-                companyName: form?.company_Name,
-                companyDomain: form?.companyDomain,
-                email: form?.email,
-                companyID: form?.companyID,
-                companyAddress: form?.companyAddress,
-                founded_year: form?.founded_year,
-                firstName: form?.firstName,
-                lastName: form?.lastName,
-                password: form?.password,
-                confirmPassword: form?.confirmPassword
-            });
-            console.log(api_url.register, obj,"------");
-            return
-            const res = await apiHandler.PostApi(api_url.register, obj);
-            console.log(res, "obj====>");
-            return
-            if (res.status) {
-                // Toast.show({ text1: "Verification code resend successfully.", type: "success" });
-            } else {
-                // Toast.show({ text1: res.error.message, type: "error" });
-                console.log(res.error.message);
-            }
-        } catch (error) {
-            //   setLoading(false);
-            console.log(error);
-        }
-    };
+   const registerHandler = async (form) => {
+    try {
+      const obj = {
+        companyName: form.company_Name,
+        companyDomain: form.companyDomain,
+        email: form.email,
+        companyID: form.companyID,
+        companyAddress: form.companyAddress,
+        founded_year: form.founded_year,
+        firstName: form.firstName,
+        lastName: form.lastName,
+        password: form.password,
+        confirmPassword: form.confirmPassword,
+      };
+
+      const response = await fetch("http://localhost:8080/api/register", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(obj),
+      });
+
+      const res = await response.json();
+
+      console.log(res, "response from API");
+
+      if (response.ok) {
+        alert("Registration successful!");
+      } else {
+        alert(`Registration failed: ${res.message || res.error}`);
+      }
+    } catch (error) {
+      console.error("Error:", error);
+      alert("Something went wrong.");
+    }
+  };
 
 
     return (
