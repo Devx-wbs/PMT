@@ -1,53 +1,109 @@
 import React, { useState } from 'react';
+import { api_url } from '@/api/Api';
+import { apiHandler } from '@/api/ApiHandler'; 
+
 const Section_a = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const submitForm = (e) => {
-    e.preventDefault(); 
-    if (!email) {
-      console.log("Please Enter a Email");
-    } else if (!password) {
-      console.log("Please Enter a Password");
-    } else {
-      console.log("User-Email:", email);
-      console.log("User-Password:", password);
+  const [errors, setErrors] = useState({});
+
+  const validate = () => {
+    const newErrors = {};
+    if (!email.trim()) {
+      newErrors.email = "Email is required.";
+    } else if (!/\S+@\S+\.\S+/.test(email)) {
+      newErrors.email = "Please enter a valid email.";
+    }
+
+    if (!password.trim()) {
+      newErrors.password = "Password is required.";
+    } else if (password.length < 5) {
+      newErrors.password = "Password must be at least 6 characters.";
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const submitForm = async (e) => {
+    e.preventDefault();
+
+    if (validate()) {
+      try {
+        const payload = {
+          email: email.toLowerCase(),
+          password: password,
+        };
+
+        console.log("Sending login request:", payload);
+
+        const response = await apiHandler.PostApi(api_url.login, payload);
+
+        console.log("Login response:", response);
+
+        if (response?.success) {
+          alert("Login successful!");
+         
+        } else {
+          alert(response?.message || "Login failed. Please check your credentials.");
+        }
+
+      } catch (error) {
+        console.error("Login failed:", error);
+        alert("Something went wrong during login.");
+      }
     }
   };
+
   return (
-    <div className="min-h-screen flex justify-center items-center">
-      <div className="px-4 border rounded w-auto h-fit shadow-md item-center">
-        <div className="heading text-2xl font-bold text-center py-3">
-          <h3>Sign In To Your Account</h3>
-        </div>
-        <form onSubmit={submitForm}>
-          <div className="py-2">
-            <label htmlFor="name" className="block">Email</label>
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-100 flex justify-center items-center px-4">
+      <div className="w-full max-w-md bg-white p-6 rounded-xl shadow-md">
+        <h3 className="text-2xl font-bold text-center text-gray-800 mb-6">
+          Sign In To Your Account
+        </h3>
+        <form onSubmit={submitForm} className="space-y-4">
+          <div>
+            <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+              Email
+            </label>
             <input
-              className="border w-full border-gray-400 rounded focus:outline-none py-1"
+              className={`mt-1 block w-full border px-3 py-2 rounded-md focus:outline-none focus:ring-2 ${
+                errors.email ? "border-red-500 focus:ring-red-400" : "border-gray-300 focus:ring-blue-400"
+              }`}
               type="email"
-              id="name"
+              id="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
             />
+            {errors.email && <p className="text-sm text-red-500 mt-1">{errors.email}</p>}
           </div>
-          <div className="py-2">
-            <label htmlFor="password" className="block">Password</label>
+
+          <div>
+            <label htmlFor="password" className="block text-sm font-medium text-gray-700">
+              Password
+            </label>
             <input
-              className="border w-full border-gray-400 rounded focus:outline-none py-1"
+              className={`mt-1 block w-full border px-3 py-2 rounded-md focus:outline-none focus:ring-2 ${
+                errors.password ? "border-red-500 focus:ring-red-400" : "border-gray-300 focus:ring-blue-400"
+              }`}
               type="password"
               id="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
             />
+            {errors.password && <p className="text-sm text-red-500 mt-1">{errors.password}</p>}
           </div>
-          <div className="py-2">
-            <button className="text-center bg-black rounded text-white w-full py-2" type="submit">
-              Sign In
-            </button>
-          </div>
+
+          <button
+            className="w-full bg-[#0C1125] text-white py-2 rounded-md hover:bg-[#1a1f3b] transition"
+            type="submit"
+          >
+            Sign In
+          </button>
         </form>
-        <div className="pt-2 pb-4">
-          <a href="#" target="_blank" className="text-blue-600">
+
+        <div className="text-center mt-4">
+          <a href="#" className="text-blue-600 text-sm hover:underline">
             Don't have an account? Register your company
           </a>
         </div>
@@ -55,4 +111,5 @@ const Section_a = () => {
     </div>
   );
 };
+
 export default Section_a;
