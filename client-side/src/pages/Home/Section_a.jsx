@@ -23,6 +23,13 @@ const Section_a = () => {
             >
                 Team Member
             </button>
+               <button
+                onClick={() => navigate('/TeamMember')}
+                type="submit"
+                className="w-40 mt-50 ml-10 bg-[#0C1125] text-white py-2 rounded-md hover:bg-[#1a1f3b] transition"
+            >
+                All Project
+            </button>
          </div>
         </section>
     )
