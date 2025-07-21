@@ -36,6 +36,8 @@ mongoose.connect(process.env.MONGO_URI)
     .catch((err) => console.log("MongoDb Connection error", err));
 
 app.use('/api', userRoutes);
+app.use ('/api/teams', teamRoutes);
+app.use('/api/teamMembers', teamMemberRoutes);
 
 app.listen(8080,(req,res)=>{
     console.log("Server is running on port 8080")
