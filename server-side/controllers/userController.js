@@ -63,13 +63,16 @@ exports.login = async (req, res) => {
         if (!email || !password)
             return res.status(400).json({ message: 'Required fields missing' });
 
-        const user = await User.findOne({ email });
-        if (!user) return res.status(404).json({ message: 'User not found' });
+        // First fetch user with password
+        const userWithPassword = await User.findOne({ email });
+        if (!userWithPassword) return res.status(404).json({ message: 'User not found' });
 
-        const isMatch = await bcrypt.compare(password, user.password);
+        // Compare password
+        const isMatch = await bcrypt.compare(password, userWithPassword.password);
         if (!isMatch) return res.status(400).json({ message: 'Wrong password' });
 
-        let token = user.token;
+        // Issue or reuse token
+        let token = userWithPassword.token;
         let isTokenValid = false;
 
         if (token) {
@@ -82,13 +85,22 @@ exports.login = async (req, res) => {
         }
 
         if (!isTokenValid) {
-            token = jwt.sign({ id: user._id }, 'secret123', { expiresIn: '7d' });
-            user.token = token;
-            await user.save();
+            token = jwt.sign({ id: userWithPassword._id }, 'secret123', { expiresIn: '7d' });
+            userWithPassword.token = token;
+            await userWithPassword.save();
         }
 
-        res.json({ message: 'Login successful', token});
+        // Prepare user object without password
+        const { password: _, ...userDetails } = userWithPassword.toObject();
+
+        res.json({
+            message: 'Login successful',
+            token,
+            user: userDetails
+        });
+
     } catch (err) {
+        console.error('Login error:', err);
         res.status(500).json({ message: 'Server error' });
     }
 };

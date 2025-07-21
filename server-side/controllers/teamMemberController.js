@@ -23,16 +23,16 @@ exports.addTeamMember = async (req, res) => {
       return res.status(400).json({ message: 'Email already exists for a team member' });
     }
 
-    const lastMember = await TeamMember.findOne({ companyId: { $regex: /^WS-\d+$/ } })
-      .sort({ companyId: -1 })
+    const lastMember = await TeamMember.findOne({ teamMemberId: { $regex: /^WS-\d+$/ } })
+      .sort({ teamMemberId: -1 })
       .collation({ locale: 'en', numericOrdering: true });
 
     let newIdNumber = 1;
-    if (lastMember && lastMember.companyId) {
-      const lastNumber = parseInt(lastMember.companyId.split('-')[1]);
+    if (lastMember && lastMember.teamMemberId) {
+      const lastNumber = parseInt(lastMember.teamMemberId.split('-')[1]);
       newIdNumber = lastNumber + 1;
     }
-    const companyId = `WS-${newIdNumber.toString().padStart(3, '0')}`;
+    const teamMemberId = `WS-${newIdNumber.toString().padStart(3, '0')}`;
 
 
     const autoPassword = crypto.randomBytes(6).toString('hex');
@@ -45,7 +45,7 @@ exports.addTeamMember = async (req, res) => {
     const newMember = new TeamMember({
       name,
       email,
-      companyId,
+      teamMemberId,
       leadMember,
       role,
       password: hashedPassword,
