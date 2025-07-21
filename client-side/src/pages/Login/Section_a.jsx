@@ -1,11 +1,11 @@
-import React, { useState } from 'react';
-import { api_url } from '@/api/Api';
-import { apiHandler } from '@/api/ApiHandler';
-import { Link, useNavigate } from 'react-router-dom';
+import React, { useState } from "react";
+import { api_url } from "@/api/Api";
+import { apiHandler } from "@/api/ApiHandler";
+import { Link, useNavigate } from "react-router-dom";
 import { Eye, EyeOff } from "lucide-react";
 const Section_a = () => {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [errors, setErrors] = useState({});
   const navigate = useNavigate();
@@ -35,22 +35,20 @@ const Section_a = () => {
     if (validate()) {
       try {
         const payload = { email, password };
-        console.log("Sending login request:", payload);
-
         const response = await apiHandler.PostApi(api_url.login, payload);
-
-        console.log("Login response:", response);
-
-        if (response?.success) {
-          if (window.confirm("Login successful! Click OK to proceed to the dashboard.")) {
-            navigate("/DashBoard");
-          }
+        if (response?.success || response?.message === "Login successful") {
+          navigate("/Dashboard");
         } else {
-          alert(response?.message || "Login failed. Please check your credentials.");
+          setErrors({
+            general:
+              response?.message ||
+              "Login failed. Please check your credentials.",
+          });
         }
       } catch (error) {
-        console.error("Login error:", error);
-        alert("Something went wrong during login.");
+        setErrors({
+          general: error.message || "Something went wrong during login.",
+        });
       }
     }
   };
@@ -64,7 +62,10 @@ const Section_a = () => {
 
         <form onSubmit={submitForm} className="space-y-4">
           <div>
-            <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+            <label
+              htmlFor="email"
+              className="block text-sm font-medium text-gray-700"
+            >
               Email
             </label>
             <input
@@ -72,13 +73,22 @@ const Section_a = () => {
               id="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className={`mt-1 block w-full border px-3 py-2 rounded-md focus:outline-none focus:ring-2 ${errors.email ? "border-red-500 focus:ring-red-400" : "border-gray-300 focus:ring-blue-400"}`}
+              className={`mt-1 block w-full border px-3 py-2 rounded-md focus:outline-none focus:ring-2 ${
+                errors.email
+                  ? "border-red-500 focus:ring-red-400"
+                  : "border-gray-300 focus:ring-blue-400"
+              }`}
             />
-            {errors.email && <p className="text-sm text-red-500 mt-1">{errors.email}</p>}
+            {errors.email && (
+              <p className="text-sm text-red-500 mt-1">{errors.email}</p>
+            )}
           </div>
 
           <div className="relative">
-            <label htmlFor="password" className="block text-sm font-medium text-gray-700">
+            <label
+              htmlFor="password"
+              className="block text-sm font-medium text-gray-700"
+            >
               Password
             </label>
             <input
@@ -86,8 +96,11 @@ const Section_a = () => {
               id="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className={`mt-1 block w-full border px-3 py-2 rounded-md focus:outline-none focus:ring-2 ${errors.password ? "border-red-500 focus:ring-red-400" : "border-gray-300 focus:ring-blue-400"
-                } pr-10`}
+              className={`mt-1 block w-full border px-3 py-2 rounded-md focus:outline-none focus:ring-2 ${
+                errors.password
+                  ? "border-red-500 focus:ring-red-400"
+                  : "border-gray-300 focus:ring-blue-400"
+              } pr-10`}
             />
 
             <div
