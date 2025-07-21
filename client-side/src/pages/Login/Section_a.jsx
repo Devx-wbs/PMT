@@ -1,11 +1,12 @@
-import React, { useState, setTimeout } from 'react';
+import React, { useState } from 'react';
 import { api_url } from '@/api/Api';
 import { apiHandler } from '@/api/ApiHandler';
 import { Link, useNavigate } from 'react-router-dom';
-
+import { Eye, EyeOff } from "lucide-react";
 const Section_a = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [errors, setErrors] = useState({});
   const navigate = useNavigate();
 
@@ -33,11 +34,7 @@ const Section_a = () => {
 
     if (validate()) {
       try {
-        const payload = {
-          email: email,
-          password: password,
-        };
-
+        const payload = { email, password };
         console.log("Sending login request:", payload);
 
         const response = await apiHandler.PostApi(api_url.login, payload);
@@ -45,11 +42,10 @@ const Section_a = () => {
         console.log("Login response:", response);
 
         if (response?.success) {
-          setTimeout(() => {
-            navigate("/Dashboard");
-          }, 100);
-        }
-         else {
+          if (window.confirm("Login successful! Click OK to proceed to the dashboard.")) {
+            navigate("/DashBoard");
+          }
+        } else {
           alert(response?.message || "Login failed. Please check your credentials.");
         }
       } catch (error) {
@@ -76,27 +72,35 @@ const Section_a = () => {
               id="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className={`mt-1 block w-full border px-3 py-2 rounded-md focus:outline-none focus:ring-2 ${errors.email ? "border-red-500 focus:ring-red-400" : "border-gray-300 focus:ring-blue-400"
-                }`}
+              className={`mt-1 block w-full border px-3 py-2 rounded-md focus:outline-none focus:ring-2 ${errors.email ? "border-red-500 focus:ring-red-400" : "border-gray-300 focus:ring-blue-400"}`}
             />
             {errors.email && <p className="text-sm text-red-500 mt-1">{errors.email}</p>}
           </div>
 
-          <div>
+          <div className="relative">
             <label htmlFor="password" className="block text-sm font-medium text-gray-700">
               Password
             </label>
             <input
-              type="password"
+              type={showPassword ? "text" : "password"}
               id="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               className={`mt-1 block w-full border px-3 py-2 rounded-md focus:outline-none focus:ring-2 ${errors.password ? "border-red-500 focus:ring-red-400" : "border-gray-300 focus:ring-blue-400"
-                }`}
+                } pr-10`}
             />
-            {errors.password && <p className="text-sm text-red-500 mt-1">{errors.password}</p>}
-          </div>
 
+            <div
+              className="absolute right-3 top-[38px] cursor-pointer text-gray-600"
+              onClick={() => setShowPassword(!showPassword)}
+            >
+              {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+            </div>
+
+            {errors.password && (
+              <p className="text-sm text-red-500 mt-1">{errors.password}</p>
+            )}
+          </div>
           <button
             type="submit"
             className="w-full bg-[#0C1125] text-white py-2 rounded-md hover:bg-[#1a1f3b] transition"
