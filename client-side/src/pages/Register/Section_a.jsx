@@ -72,7 +72,6 @@ const Section_a = () => {
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(obj),
             });
-
             const res = await response.json();
             if (response.ok) alert("Registration successful!");
             else alert(`Registration failed: ${res.message || res.error}`);
@@ -90,7 +89,6 @@ const Section_a = () => {
                 </h2>
 
                 <form onSubmit={handleSubmit} className="space-y-6">
-                    {/* Company Name */}
                     <InputField
                         label="Company Name"
                         name="company_Name"
@@ -99,7 +97,6 @@ const Section_a = () => {
                         error={errors.company_Name}
                     />
 
-                    {/* Company Domain */}
                     <InputField
                         label="Company Domain"
                         name="companyDomain"
@@ -109,7 +106,6 @@ const Section_a = () => {
                         error={errors.companyDomain}
                     />
 
-                    {/* First and Last Name */}
                     <div className="grid sm:grid-cols-2 gap-4">
                         <InputField
                             label="First Name"
@@ -127,7 +123,6 @@ const Section_a = () => {
                         />
                     </div>
 
-                    {/* Email */}
                     <InputField
                         label="Email Address"
                         name="email"
@@ -137,7 +132,6 @@ const Section_a = () => {
                         error={errors.email}
                     />
 
-                    {/* Company ID */}
                     <InputField
                         label="Company ID"
                         name="companyID"
@@ -146,7 +140,6 @@ const Section_a = () => {
                         error={errors.companyID}
                     />
 
-                    {/* Company Address */}
                     <InputField
                         label="Company Address"
                         name="companyAddress"
@@ -155,7 +148,6 @@ const Section_a = () => {
                         error={errors.companyAddress}
                     />
 
-                    {/* Founded Year */}
                     <InputField
                         label="Founded Year"
                         name="founded_year"
@@ -165,7 +157,6 @@ const Section_a = () => {
                         error={errors.founded_year}
                     />
 
-                    {/* Passwords */}
                     <div className="grid sm:grid-cols-2 gap-4">
                         <InputField
                             label="Password"
@@ -185,7 +176,6 @@ const Section_a = () => {
                         />
                     </div>
 
-                    {/* Submit */}
                     <button
                         type="submit"
                         className="w-full bg-[#0C1125] text-white py-3 rounded-lg hover:bg-[#1a1f3b] transition"
@@ -193,7 +183,6 @@ const Section_a = () => {
                         Register
                     </button>
 
-                    {/* Login Redirect */}
                     <p className="text-center text-sm text-blue-600 mt-4">
                         Already have an account?{" "}
                         <Link to="/Login" className="font-medium underline">
@@ -226,9 +215,8 @@ const InputField = ({
             placeholder={placeholder}
             value={value}
             onChange={onChange}
-            className={`mt-1 block w-full rounded-md border px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                error ? "border-red-400" : "border-gray-300"
-            }`}
+            className={`mt-1 block w-full rounded-md border px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 ${error ? "border-red-400" : "border-gray-300"
+                }`}
         />
         {error && <p className="text-sm text-red-500 mt-1">{error}</p>}
     </div>

@@ -150,6 +150,7 @@ export const apiHandler = {
             headers: {
                 Authorization: "Bearer " + token,
             },
+
             body: formdata,
             redirect: "follow",
         };
