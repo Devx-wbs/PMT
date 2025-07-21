@@ -2,8 +2,10 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { api_url } from "@/api/Api";
 import { apiHandler } from "@/api/ApiHandler";
+import { useAuthRedirect } from "@/hooks/useAuthRedirect";
 
 const Section_a = () => {
+  useAuthRedirect();
   const [form, setForm] = useState({
     firstName: "",
     lastName: "",

@@ -3,7 +3,10 @@ import { api_url } from "@/api/Api";
 import { apiHandler } from "@/api/ApiHandler";
 import { Link, useNavigate } from "react-router-dom";
 import { Eye, EyeOff } from "lucide-react";
+import { useAuthRedirect } from "@/hooks/useAuthRedirect";
+
 const Section_a = () => {
+  useAuthRedirect();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -37,6 +40,12 @@ const Section_a = () => {
         const payload = { email, password };
         const response = await apiHandler.PostApi(api_url.login, payload);
         if (response?.success || response?.message === "Login successful") {
+          if (response.token) {
+            localStorage.setItem("token", response.token);
+          }
+          if (response.user) {
+            localStorage.setItem("user", JSON.stringify(response.user));
+          }
           navigate("/Dashboard");
         } else {
           setErrors({

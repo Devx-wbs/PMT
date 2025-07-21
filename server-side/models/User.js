@@ -5,12 +5,21 @@ const userSchema = new mongoose.Schema({
   companyDomain: { type: String, required: true, unique: true },
   companyID: { type: String, required: true, unique: true },
   companyAddress: { type: String, required: true },
-  founded_year: { type: Number, required: true }, // Now required
+  founded_year: { type: Number, required: true },
+  website: { type: String },
+  industry: { type: String },
   firstName: { type: String, required: true },
   lastName: { type: String, required: true },
   email: { type: String, required: true, unique: true },
   password: { type: String, required: true },
   role: { type: String, default: "owner" },
+  employeeID: { type: String, unique: true },
+  department: { type: String },
+  joinDate: { type: Date },
+  accountStatus: { type: String, default: "Active" },
+  emailVerified: { type: Boolean, default: true },
+  lastLogin: { type: Date },
+  accountType: { type: String, default: "Standard" },
   token: { type: String },
 });
 

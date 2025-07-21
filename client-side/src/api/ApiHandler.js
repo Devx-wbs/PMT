@@ -70,6 +70,29 @@ export const apiHandler = {
     return result;
   },
 
+  UpdateApi: async (url, data, token) => {
+    let result = {};
+    let config = {
+      method: "patch",
+      maxBodyLength: Infinity,
+      url: url,
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      data: data,
+    };
+    await axios
+      .request(config)
+      .then(async (response) => {
+        result = await response.data;
+      })
+      .catch(async (error) => {
+        result = await error?.response?.data;
+      });
+    return result;
+  },
+
   DeleteApi: async (url, Token) => {
     let result = {};
     let config = {

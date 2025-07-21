@@ -61,6 +61,9 @@ exports.register = async (req, res) => {
     }
 
     const hashed = await bcrypt.hash(password, 10);
+    // Generate employeeID if not provided
+    const employeeID = `EMP${Math.floor(Math.random() * 1e12)}`;
+    const joinDate = new Date();
     const newUser = new User({
       companyName,
       companyDomain,
@@ -71,6 +74,12 @@ exports.register = async (req, res) => {
       lastName,
       email,
       password: hashed,
+      employeeID,
+      joinDate,
+      accountStatus: "Active",
+      emailVerified: true,
+      lastLogin: joinDate,
+      accountType: "Standard",
     });
     await newUser.save();
 
@@ -126,6 +135,10 @@ exports.login = async (req, res) => {
       await userWithPassword.save();
     }
 
+    // On login, update lastLogin
+    userWithPassword.lastLogin = new Date();
+    await userWithPassword.save();
+
     const { password: _, ...userDetails } = userWithPassword.toObject();
 
     res.json({
@@ -141,11 +154,29 @@ exports.login = async (req, res) => {
 
 exports.update = async (req, res) => {
   try {
-    const { companyName, companyDomain, companyAddress, email } = req.body;
-
+    // In update, allow updating new fields
+    const {
+      companyName,
+      companyDomain,
+      companyAddress,
+      email,
+      website,
+      industry,
+      department,
+      accountType,
+    } = req.body;
     const updated = await User.findByIdAndUpdate(
       req.user._id,
-      { companyName, companyDomain, companyAddress, email },
+      {
+        companyName,
+        companyDomain,
+        companyAddress,
+        email,
+        website,
+        industry,
+        department,
+        accountType,
+      },
       { new: true }
     ).select("-password");
 
