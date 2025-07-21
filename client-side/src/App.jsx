@@ -5,6 +5,7 @@ import Home from "./pages/Home";
 import Login from "./pages/Login";
 import TeamMember from "./pages/TeamMember";
 import MyTeam from "./pages/MyTeam";
+import DashBoard from "./pages/DashBoard";
 
 export default function App() {
   return (
@@ -15,9 +16,7 @@ export default function App() {
         <Route path="/Login" element={<Login />} />
         <Route path="/TeamMember" element={<TeamMember />} />
         <Route path="/MyTeam" element={<MyTeam />} />
-
-
-
+        <Route path="/DashBoard" element={<DashBoard />} />
       </Routes>
     </BrowserRouter>
   );
