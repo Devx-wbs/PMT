@@ -16,7 +16,6 @@ const TopBar = () => {
   const triggerRef = useRef(null);
   const dropdownRef = useRef(null);
 
-  // Close dropdown on outside click
   useEffect(() => {
     function handleClickOutside(event) {
       if (
