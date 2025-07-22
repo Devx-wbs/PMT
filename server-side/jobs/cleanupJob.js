@@ -1,5 +1,6 @@
 // jobs/cleanupJob.js
-const TeamMember = require('../models/TeamMember');
+// const TeamMember = require('../models/TeamMember');
+const Employee = require('../models/Employee');
 
 const cleanupExpiredTeamMembers = async () => {
     try {
