@@ -10,7 +10,6 @@ const teamRoutes = require("./routes/teamRoutes");
 const employeeRoutes = require('./routes/employeeRoutes'); // updated
 const path = require("path");
 const cors = require("cors");
-const path = require("path");
 
 app.use(
   cors({

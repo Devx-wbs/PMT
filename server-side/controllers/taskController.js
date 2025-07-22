@@ -1,5 +1,5 @@
-const Task = require('../models/Task');
-const TeamMember = require('../models/TeamMember');
+const Task = require("../models/Task");
+const TeamMember = require("../models/Employee");
 
 // Create a new task
 exports.createTask = async (req, res) => {
@@ -8,7 +8,9 @@ exports.createTask = async (req, res) => {
   try {
     const teamMember = await TeamMember.findOne({ teamMemberId: assignedTo });
     if (!teamMember) {
-      return res.status(404).json({ message: 'Assigned team member not found' });
+      return res
+        .status(404)
+        .json({ message: "Assigned team member not found" });
     }
 
     const newTask = new Task({
@@ -20,10 +22,12 @@ exports.createTask = async (req, res) => {
     });
 
     await newTask.save();
-    res.status(201).json({ message: 'Task assigned successfully', task: newTask });
+    res
+      .status(201)
+      .json({ message: "Task assigned successfully", task: newTask });
   } catch (err) {
-    console.error('Error creating task:', err);
-    res.status(500).json({ message: 'Internal server error' });
+    console.error("Error creating task:", err);
+    res.status(500).json({ message: "Internal server error" });
   }
 };
 
@@ -34,13 +38,13 @@ exports.getOngoingTasks = async (req, res) => {
   try {
     const tasks = await Task.find({
       assignedTo: teamMemberId,
-      status: { $in: ['pending', 'in-progress'] },
+      status: { $in: ["pending", "in-progress"] },
     });
 
     res.status(200).json(tasks);
   } catch (err) {
-    console.error('Error fetching ongoing tasks:', err);
-    res.status(500).json({ message: 'Internal server error' });
+    console.error("Error fetching ongoing tasks:", err);
+    res.status(500).json({ message: "Internal server error" });
   }
 };
 
@@ -51,34 +55,36 @@ exports.getTaskHistory = async (req, res) => {
   try {
     const tasks = await Task.find({
       assignedTo: teamMemberId,
-      status: 'completed',
+      status: "completed",
     });
 
     res.status(200).json(tasks);
   } catch (err) {
-    console.error('Error fetching task history:', err);
-    res.status(500).json({ message: 'Internal server error' });
+    console.error("Error fetching task history:", err);
+    res.status(500).json({ message: "Internal server error" });
   }
 };
-const TeamMember = require('../models/TeamMember');
+const TeamMember = require("../models/Employee");
 
 exports.getAllAssignableTeamMembers = async (req, res) => {
   try {
     const user = req.user;
 
     let query = {
-      role: { $nin: ['owner', 'admin'] },
+      role: { $nin: ["owner", "admin"] },
     };
 
-    if (user.role === 'team-lead') {
+    if (user.role === "team-lead") {
       query.leadMember = user._id;
     }
 
-    const teamMembers = await TeamMember.find(query).select('name email teamMemberId role');
+    const teamMembers = await TeamMember.find(query).select(
+      "name email teamMemberId role"
+    );
 
     res.status(200).json(teamMembers);
   } catch (err) {
-    console.error('Error fetching team members:', err);
-    res.status(500).json({ message: 'Internal server error' });
+    console.error("Error fetching team members:", err);
+    res.status(500).json({ message: "Internal server error" });
   }
 };
