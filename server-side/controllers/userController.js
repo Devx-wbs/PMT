@@ -165,20 +165,28 @@ exports.update = async (req, res) => {
       department,
       accountType,
     } = req.body;
-    const updated = await User.findByIdAndUpdate(
-      req.user._id,
-      {
-        companyName,
-        companyDomain,
-        companyAddress,
-        email,
-        website,
-        industry,
-        department,
-        accountType,
-      },
-      { new: true }
-    ).select("-password");
+
+    // Handle companyLogo upload
+    let companyLogo;
+    if (req.file) {
+      companyLogo = `/uploads/companyLogos/${req.file.filename}`;
+    }
+
+    const updateFields = {
+      companyName,
+      companyDomain,
+      companyAddress,
+      email,
+      website,
+      industry,
+      department,
+      accountType,
+    };
+    if (companyLogo) updateFields.companyLogo = companyLogo;
+
+    const updated = await User.findByIdAndUpdate(req.user._id, updateFields, {
+      new: true,
+    }).select("-password");
 
     res.json({ message: "Updated", user: updated });
   } catch (err) {

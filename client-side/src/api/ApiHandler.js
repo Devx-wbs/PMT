@@ -70,16 +70,19 @@ export const apiHandler = {
     return result;
   },
 
-  UpdateApi: async (url, data, token) => {
+  UpdateApi: async (url, data, token, isFormData = false) => {
     let result = {};
+    let headers = {
+      Authorization: `Bearer ${token}`,
+    };
+    if (!isFormData) {
+      headers["Content-Type"] = "application/json";
+    }
     let config = {
       method: "patch",
       maxBodyLength: Infinity,
       url: url,
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
+      headers: headers,
       data: data,
     };
     await axios
