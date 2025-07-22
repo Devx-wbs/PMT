@@ -6,11 +6,12 @@ const employeeController = require("../controllers/employeeController");
 
 router.post("/addEmployee", authMiddleware, employeeController.addEmployee);
 router.post("/employeeFirstLogin", employeeController.employeeFirstLogin);
-router.post("/login", employeeController.employeeLogin);
+router.post('/login', employeeController.login);
 router.put(
   "/editEmployee/:teamMemberId",
   authMiddleware,
   employeeController.editEmployee
 );
+router.get('/all', authMiddleware, employeeController.getAllEmployees);
 
 module.exports = router;

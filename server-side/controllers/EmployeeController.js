@@ -1,5 +1,6 @@
-const Employee = require("../models/Employee");
+const Employee = require('../models/Employee');
 const bcrypt = require("bcryptjs");
+const jwt = require('jsonwebtoken');
 const crypto = require("crypto");
 const sendEmail = require("../utils/sendEmail");
 
@@ -125,7 +126,7 @@ exports.employeeFirstLogin = async (req, res) => {
 };
 
 // API: Employee Login
-exports.employeeLogin = async (req, res) => {
+exports.login = async (req, res) => {
   const { email, password, confirmPassword } = req.body;
 
   if (!email || !password) {
@@ -162,10 +163,17 @@ exports.employeeLogin = async (req, res) => {
         .json({ message: "Please update your password before logging in" });
     }
 
+    // ✅ Create token
+    const token = jwt.sign({ id: employee._id, role: employee.role }, 'secret123', {
+      expiresIn: '7d',
+    });
+
     res.status(200).json({
       message: "Login successful",
+      token,
       employee: {
         id: employee._id,
+        teamMemberId: employee.teamMemberId,
         name: employee.name,
         email: employee.email,
         role: employee.role,
@@ -213,5 +221,16 @@ exports.editEmployee = async (req, res) => {
   } catch (error) {
     console.error("❌ Error updating employee:", error);
     res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+// API: Get all employees
+exports.getAllEmployees = async (req, res) => {
+  try {
+    const employees = await Employee.find().select('-password'); // Exclude password for security
+    res.status(200).json(employees);
+  } catch (error) {
+    console.error('Error fetching employees:', error);
+    res.status(500).json({ message: 'Internal server error' });
   }
 };
