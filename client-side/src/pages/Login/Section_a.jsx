@@ -12,7 +12,6 @@ const Section_a = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [errors, setErrors] = useState({});
 
-
   const navigate = useNavigate();
 
   const validate = () => {
@@ -49,8 +48,19 @@ const Section_a = () => {
           }
           if (response.user) {
             localStorage.setItem("user", JSON.stringify(response.user));
+            localStorage.setItem("userType", "user");
+            navigate("/Dashboard");
+          } else if (response.employee) {
+            localStorage.setItem("user", JSON.stringify(response.employee));
+            localStorage.setItem("userType", "employee");
+            navigate("/Profile"); // or another employee dashboard/profile page
+          } else {
+            setErrors({
+              general:
+                response?.message ||
+                "Login failed. Please check your credentials.",
+            });
           }
-          navigate("/Dashboard");
         } else {
           setErrors({
             general:
@@ -86,10 +96,11 @@ const Section_a = () => {
               id="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className={`mt-1 block w-full border px-3 py-2 rounded-md focus:outline-none focus:ring-2 ${errors.email
+              className={`mt-1 block w-full border px-3 py-2 rounded-md focus:outline-none focus:ring-2 ${
+                errors.email
                   ? "border-red-500 focus:ring-red-400"
                   : "border-gray-300 focus:ring-blue-400"
-                }`}
+              }`}
             />
             {errors.email && (
               <p className="text-sm text-red-500 mt-1">{errors.email}</p>
@@ -108,10 +119,11 @@ const Section_a = () => {
               id="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className={`mt-1 block w-full border px-3 py-2 rounded-md focus:outline-none focus:ring-2 ${errors.password
+              className={`mt-1 block w-full border px-3 py-2 rounded-md focus:outline-none focus:ring-2 ${
+                errors.password
                   ? "border-red-500 focus:ring-red-400"
                   : "border-gray-300 focus:ring-blue-400"
-                } pr-10`}
+              } pr-10`}
             />
 
             <div
