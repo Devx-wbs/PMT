@@ -77,17 +77,45 @@ const Section_a = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-100 flex justify-center items-center px-4">
-      <div className="w-full max-w-md bg-white p-6 rounded-xl shadow-md">
+    <div className="min-h-screen flex items-center justify-center bg-[#dbeafe] px-4 py-10 font-sans">
+      <button
+        onClick={() => navigate("/")}
+        className="absolute top-6 left-6 bg-white/80 border border-blue-200 text-blue-700 px-4 py-1 rounded-md font-semibold shadow-sm hover:bg-blue-50 transition z-20"
+      >
+        ← Home
+      </button>
+      <div className="w-full max-w-md bg-white/90 p-8 rounded-2xl shadow-xl border border-blue-100 flex flex-col items-center">
+        {/* Logo */}
+        <div className="flex items-center gap-2 mb-6">
+          <svg
+            width="38"
+            height="38"
+            viewBox="0 0 44 44"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <rect width="44" height="44" rx="12" fill="#2563eb" />
+            <path
+              d="M13 29L22 15L31 29"
+              stroke="#fff"
+              strokeWidth="2.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </svg>
+          <span className="text-xl font-bold text-blue-700 tracking-tight">
+            ProjectFlow
+          </span>
+        </div>
         <h3 className="text-2xl font-bold text-center text-gray-800 mb-6">
           Sign In To Your Account
         </h3>
 
-        <form onSubmit={submitForm} className="space-y-4">
+        <form onSubmit={submitForm} className="space-y-5 w-full">
           <div>
             <label
               htmlFor="email"
-              className="block text-sm font-medium text-gray-700"
+              className="block text-sm font-medium text-gray-700 mb-1"
             >
               Email
             </label>
@@ -96,11 +124,12 @@ const Section_a = () => {
               id="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className={`mt-1 block w-full border px-3 py-2 rounded-md focus:outline-none focus:ring-2 ${
+              className={`mt-1 block w-full border px-3 py-2 rounded-md focus:outline-none focus:ring-2 text-gray-900 bg-white/80 ${
                 errors.email
                   ? "border-red-500 focus:ring-red-400"
                   : "border-gray-300 focus:ring-blue-400"
               }`}
+              autoComplete="email"
             />
             {errors.email && (
               <p className="text-sm text-red-500 mt-1">{errors.email}</p>
@@ -110,7 +139,7 @@ const Section_a = () => {
           <div className="relative">
             <label
               htmlFor="password"
-              className="block text-sm font-medium text-gray-700"
+              className="block text-sm font-medium text-gray-700 mb-1"
             >
               Password
             </label>
@@ -119,34 +148,38 @@ const Section_a = () => {
               id="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className={`mt-1 block w-full border px-3 py-2 rounded-md focus:outline-none focus:ring-2 ${
+              className={`mt-1 block w-full border px-3 py-2 rounded-md focus:outline-none focus:ring-2 text-gray-900 bg-white/80 ${
                 errors.password
                   ? "border-red-500 focus:ring-red-400"
                   : "border-gray-300 focus:ring-blue-400"
               } pr-10`}
+              autoComplete="current-password"
             />
-
             <div
               className="absolute right-3 top-[38px] cursor-pointer text-gray-600"
               onClick={() => setShowPassword(!showPassword)}
             >
               {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
             </div>
-
             {errors.password && (
               <p className="text-sm text-red-500 mt-1">{errors.password}</p>
             )}
           </div>
+          {errors.general && (
+            <div className="text-center text-red-600 text-sm mb-2">
+              {errors.general}
+            </div>
+          )}
           <button
             type="submit"
-            className="w-full bg-[#0C1125] text-white py-2 rounded-md hover:bg-[#1a1f3b] transition"
+            className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-md font-semibold shadow-sm transition"
           >
             Sign In
           </button>
         </form>
 
-        <div className="text-center mt-4">
-          <p className="text-center text-sm text-blue-600 mt-4">
+        <div className="text-center mt-6 w-full">
+          <p className="text-center text-sm text-blue-600">
             Don't have an account?{" "}
             <Link to="/Register" className="font-medium underline">
               Register your company

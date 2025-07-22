@@ -87,8 +87,36 @@ const Section_a = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-100 flex items-center justify-center px-4 py-12">
-      <div className="w-full max-w-3xl bg-white rounded-xl shadow-lg p-6 sm:p-10">
+    <div className="min-h-screen flex items-center justify-center bg-[#dbeafe] px-4 py-12 font-sans">
+      <button
+        onClick={() => navigate("/")}
+        className="absolute top-6 left-6 bg-white/80 border border-blue-200 text-blue-700 px-4 py-1 rounded-md font-semibold shadow-sm hover:bg-blue-50 transition z-20"
+      >
+        ← Home
+      </button>
+      <div className="w-full max-w-3xl bg-white/90 rounded-2xl shadow-xl border border-blue-100 p-6 sm:p-10 flex flex-col items-center">
+        {/* Logo */}
+        <div className="flex items-center gap-2 mb-6">
+          <svg
+            width="38"
+            height="38"
+            viewBox="0 0 44 44"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <rect width="44" height="44" rx="12" fill="#2563eb" />
+            <path
+              d="M13 29L22 15L31 29"
+              stroke="#fff"
+              strokeWidth="2.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </svg>
+          <span className="text-xl font-bold text-blue-700 tracking-tight">
+            ProjectFlow
+          </span>
+        </div>
         <h2 className="text-2xl sm:text-3xl font-bold text-center text-gray-800 mb-8">
           Register Your Company
         </h2>
@@ -97,7 +125,7 @@ const Section_a = () => {
           <div className="text-red-600 text-center mb-4">{errors.general}</div>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <form onSubmit={handleSubmit} className="space-y-6 w-full">
           <InputField
             label="Company Name"
             name="company_Name"
@@ -187,7 +215,7 @@ const Section_a = () => {
 
           <button
             type="submit"
-            className="w-full bg-[#0C1125] text-white py-3 rounded-lg hover:bg-[#1a1f3b] transition"
+            className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-lg font-semibold shadow-sm transition"
           >
             Register
           </button>
@@ -226,7 +254,7 @@ const InputField = ({
       onChange={onChange}
       className={`mt-1 block w-full rounded-md border px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 ${
         error ? "border-red-400" : "border-gray-300"
-      }`}
+      } bg-white/80 text-gray-900`}
     />
     {error && <p className="text-sm text-red-500 mt-1">{error}</p>}
   </div>
