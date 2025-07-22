@@ -19,6 +19,9 @@ import { apiHandler } from "@/api/ApiHandler";
 
 const Section_a = () => {
   const [teamMembers, setTeamMembers] = useState([]);
+
+  console.log(teamMembers, "teamMembers=====> hello");
+
   const [addForm, setAddForm] = useState({
     name: "",
     email: "",
