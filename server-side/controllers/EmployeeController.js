@@ -3,6 +3,7 @@ const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const crypto = require("crypto");
 const sendEmail = require("../utils/sendEmail");
+const User = require("../models/User"); // Required for companyName
 
 // API: Add new Employee
 exports.addEmployee = async (req, res) => {
@@ -10,20 +11,16 @@ exports.addEmployee = async (req, res) => {
     return res.status(403).json({ message: "Only owners can add employees" });
   }
 
-  const { name, email, leadMember, role, location } = req.body;
+  const { name, email, designation, role, location, phoneNo, profileLogo } = req.body;
 
-  if (!name || !email) {
-    return res
-      .status(400)
-      .json({ message: "All required fields must be provided" });
+  if (!name || !email || !phoneNo) {
+    return res.status(400).json({ message: "Name, email, and phoneNo are required" });
   }
 
   try {
     const existingEmployee = await Employee.findOne({ email });
     if (existingEmployee) {
-      return res
-        .status(400)
-        .json({ message: "Email already exists for an employee" });
+      return res.status(400).json({ message: "Email already exists for an employee" });
     }
 
     const lastEmployee = await Employee.findOne({
@@ -43,16 +40,22 @@ exports.addEmployee = async (req, res) => {
     const hashedPassword = await bcrypt.hash(autoPassword, 10);
     const passwordExpiresAt = new Date(Date.now() + 5 * 60 * 1000); // 5 minutes
 
+    const owner = await User.findById(req.user._id);
+    if (!owner) return res.status(404).json({ message: "Owner not found" });
+
     const newEmployee = new Employee({
       name,
       email,
+      phoneNo,
       teamMemberId,
-      leadMember,
+      designation,
       role,
+      profileLogo,
+      location,
       password: hashedPassword,
       passwordExpiresAt,
       addedBy: req.user._id,
-      location,
+      companyName: owner.companyName, // ✅ fetch from owner who added
     });
 
     await newEmployee.save();
@@ -61,16 +64,19 @@ exports.addEmployee = async (req, res) => {
       email,
       "Welcome to the Team",
       `Hi ${name},
-\nYou've been added as an employee in ${req.user.companyName}.
-\nLogin Email: ${email}
+
+You've been added as an employee in ${owner.companyName}.
+
+Login Email: ${email}
 Password: ${autoPassword}
-\nTo set your password and activate your account, please log in here (valid for 5 minutes):\nhttp://localhost:5173/emp-login
-\nNote: This is an auto-generated password and it will expire in 5 minutes. If you do not set your password in time, your account will be deleted automatically.`
+
+To set your password and activate your account, please log in here (valid for 5 minutes):
+http://localhost:5173/emp-login
+
+Note: This is an auto-generated password and it will expire in 5 minutes. If you do not set your password in time, your account will be deleted automatically.`
     );
 
-    res
-      .status(201)
-      .json({ message: "Employee added successfully", employee: newEmployee });
+    res.status(201).json({ message: "Employee added successfully", employee: newEmployee });
   } catch (err) {
     console.error("Error adding employee:", err);
     res.status(500).json({ message: "Internal server error" });
@@ -90,27 +96,21 @@ exports.employeeFirstLogin = async (req, res) => {
 
   if (employee.passwordExpiresAt && new Date() > employee.passwordExpiresAt) {
     return res.status(403).json({
-      message:
-        "Your temporary password has expired. Please contact the administrator for a new one.",
+      message: "Your temporary password has expired. Please contact the administrator for a new one.",
     });
   }
 
   if (!employee.mustChangePassword)
-    return res
-      .status(400)
-      .json({ message: "Password already updated, use login instead" });
+    return res.status(400).json({ message: "Password already updated, use login instead" });
 
   const isMatch = await bcrypt.compare(oldPassword, employee.password);
-  if (!isMatch)
-    return res.status(400).json({ message: "Old password is incorrect" });
+  if (!isMatch) return res.status(400).json({ message: "Old password is incorrect" });
 
   if (newPassword !== confirmPassword)
     return res.status(400).json({ message: "New passwords do not match" });
 
   if (newPassword.length < 6)
-    return res
-      .status(400)
-      .json({ message: "Password must be at least 6 characters long" });
+    return res.status(400).json({ message: "Password must be at least 6 characters long" });
 
   employee.password = await bcrypt.hash(newPassword, 10);
   employee.passwordExpiresAt = null;
@@ -118,9 +118,7 @@ exports.employeeFirstLogin = async (req, res) => {
 
   await employee.save();
 
-  res
-    .status(200)
-    .json({ message: "Password updated successfully. Please login." });
+  res.status(200).json({ message: "Password updated successfully. Please login." });
 };
 
 // API: Employee Login
@@ -132,9 +130,7 @@ exports.login = async (req, res) => {
   }
 
   if (confirmPassword !== undefined) {
-    return res
-      .status(400)
-      .json({ message: "Do not include confirmPassword during login" });
+    return res.status(400).json({ message: "Do not include confirmPassword during login" });
   }
 
   try {
@@ -145,8 +141,7 @@ exports.login = async (req, res) => {
 
     if (employee.passwordExpiresAt && new Date() > employee.passwordExpiresAt) {
       return res.status(403).json({
-        message:
-          "Temporary password has expired. Please contact your administrator.",
+        message: "Temporary password has expired. Please contact your administrator.",
       });
     }
 
@@ -156,18 +151,13 @@ exports.login = async (req, res) => {
     }
 
     if (employee.mustChangePassword) {
-      return res
-        .status(400)
-        .json({ message: "Please update your password before logging in" });
+      return res.status(400).json({ message: "Please update your password before logging in" });
     }
 
-    // ✅ Create token
     const token = jwt.sign(
       { id: employee._id, role: employee.role },
       "secret123",
-      {
-        expiresIn: "7d",
-      }
+      { expiresIn: "7d" }
     );
 
     res.status(200).json({
@@ -187,10 +177,10 @@ exports.login = async (req, res) => {
   }
 };
 
-// Edit employee information using teamMemberId
+// Edit employee using teamMemberId
 exports.editEmployee = async (req, res) => {
   const { teamMemberId } = req.params;
-  const { name, email, leadMember, role, location } = req.body;
+  const { name, email, designation, role, location, phoneNo, profileLogo } = req.body;
 
   if (!teamMemberId) {
     return res.status(400).json({ message: "teamMemberId is required" });
@@ -198,35 +188,32 @@ exports.editEmployee = async (req, res) => {
 
   try {
     const employee = await Employee.findOne({ teamMemberId });
-
     if (!employee) {
       return res.status(404).json({ message: "Employee not found" });
     }
 
-    // Optional: Only certain roles (like owner/admin) can update others
     if (req.user.role !== "owner" && req.user.role !== "admin") {
       return res.status(403).json({ message: "Unauthorized to edit employee" });
     }
 
-    // Update fields if they are provided
     if (name) employee.name = name;
     if (email) employee.email = email;
-    if (leadMember !== undefined) employee.leadMember = leadMember;
+    if (designation !== undefined) employee.designation = designation;
     if (role) employee.role = role;
     if (location) employee.location = location;
+    if (phoneNo) employee.phoneNo = phoneNo;
+    if (profileLogo) employee.profileLogo = profileLogo;
 
     await employee.save();
 
-    res
-      .status(200)
-      .json({ message: "Employee updated successfully", employee });
+    res.status(200).json({ message: "Employee updated successfully", employee });
   } catch (error) {
     console.error("❌ Error updating employee:", error);
     res.status(500).json({ message: "Internal server error" });
   }
 };
 
-// DELETE employee by teamMemberId, but keep the ID reserved
+// Delete employee by teamMemberId
 exports.deleteEmployee = async (req, res) => {
   const { teamMemberId } = req.params;
   if (!teamMemberId) {
@@ -237,8 +224,7 @@ exports.deleteEmployee = async (req, res) => {
     if (!employee) {
       return res.status(404).json({ message: "Employee not found" });
     }
-    // Optionally: store the used ID in a separate collection for future-proofing
-    // await UsedEmployeeId.create({ teamMemberId });
+
     await Employee.deleteOne({ teamMemberId });
     res.status(200).json({ message: "Employee deleted successfully" });
   } catch (error) {
@@ -247,10 +233,10 @@ exports.deleteEmployee = async (req, res) => {
   }
 };
 
-// API: Get all employees
+// Get all employees
 exports.getAllEmployees = async (req, res) => {
   try {
-    const employees = await Employee.find().select("-password"); // Exclude password for security
+    const employees = await Employee.find().select("-password");
     res.status(200).json(employees);
   } catch (error) {
     console.error("Error fetching employees:", error);
