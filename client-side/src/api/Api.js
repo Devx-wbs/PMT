@@ -1,4 +1,5 @@
 export const BASE_URL = "http://localhost:8000/api";
+export const image_url="http://localhost:8000";
 export const api_url = {
   login: BASE_URL + "/login",
   register: BASE_URL + "/register",

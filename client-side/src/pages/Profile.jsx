@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { api_url } from "@/api/Api";
+import { api_url, image_url } from "@/api/Api";
 import { apiHandler } from "@/api/ApiHandler";
 
 function Toast({ message, type, onClose }) {
@@ -282,9 +282,9 @@ const Profile = () => {
           <div className="flex items-center gap-4 mb-8">
             <img
               src={
-                logoPreview ||
+                
                 (user.companyLogo
-                  ? api_url.base + user.companyLogo
+                  ? image_url + user.companyLogo
                   : "/vite.svg")
               }
               alt="Company Logo"
