@@ -1,90 +1,155 @@
 const Task = require("../models/Task");
-const TeamMember = require("../models/Employee");
+    const Employee = require("../models/Employee");
+    const Team = require('../models/Team');
 
-// Create a new task
-exports.createTask = async (req, res) => {
-  const { title, description, assignedTo } = req.body;
+    exports.createTask = async (req, res) => {
+        try {
+            const { title, description, assignedTo } = req.body;
 
-  try {
-    const teamMember = await TeamMember.findOne({ teamMemberId: assignedTo });
-    if (!teamMember) {
-      return res
-        .status(404)
-        .json({ message: "Assigned team member not found" });
-    }
+            if (!title || title.trim() === '') {
+                return res.status(400).json({ message: 'Title is required.' });
+            }
 
-    const newTask = new Task({
-      title,
-      description,
-      assignedTo: teamMember.teamMemberId,
-      assignedBy: req.user._id,
-      assignedByRole: req.user.role,
-    });
+            console.log("req.user from token:", req.user);
 
-    await newTask.save();
-    res
-      .status(201)
-      .json({ message: "Task assigned successfully", task: newTask });
-  } catch (err) {
-    console.error("Error creating task:", err);
-    res.status(500).json({ message: "Internal server error" });
-  }
-};
+            // Check if the provided teamMemberId exists
+            const employee = await Employee.findOne({ teamMemberId: assignedTo });
+            if (!employee) {
+                return res.status(404).json({ message: 'Employee with this teamMemberId not found.' });
+            }
 
-// Get ongoing tasks for a team member
-exports.getOngoingTasks = async (req, res) => {
-  const { teamMemberId } = req.params;
+            const task = new Task({
+                title: title.trim(),
+                description: description?.trim(),
+                assignedTo,
+                assignedBy: req.user._id,
+                assignedByRole: req.user.role.toLowerCase(),
+            });
 
-  try {
-    const tasks = await Task.find({
-      assignedTo: teamMemberId,
-      status: { $in: ["pending", "in-progress"] },
-    });
-
-    res.status(200).json(tasks);
-  } catch (err) {
-    console.error("Error fetching ongoing tasks:", err);
-    res.status(500).json({ message: "Internal server error" });
-  }
-};
-
-// Get task history (completed tasks)
-exports.getTaskHistory = async (req, res) => {
-  const { teamMemberId } = req.params;
-
-  try {
-    const tasks = await Task.find({
-      assignedTo: teamMemberId,
-      status: "completed",
-    });
-
-    res.status(200).json(tasks);
-  } catch (err) {
-    console.error("Error fetching task history:", err);
-    res.status(500).json({ message: "Internal server error" });
-  }
-};
-const TeamMember = require("../models/Employee");
-
-exports.getAllAssignableTeamMembers = async (req, res) => {
-  try {
-    const user = req.user;
-
-    let query = {
-      role: { $nin: ["owner", "admin"] },
+            await task.save();
+            res.status(201).json({ message: 'Task created successfully.', task });
+        } catch (error) {
+            console.error(error);
+            res.status(500).json({ message: 'Error creating task.', error });
+        }
     };
 
-    if (user.role === "team-lead") {
-      query.leadMember = user._id;
-    }
+    exports.getTasksForSelf = async (req, res) => {
+        try {
+            const tasks = await Task.find({ assignedTo: req.user.teamMemberId });
+            res.json(tasks);
+        } catch (error) {
+            res.status(500).json({ message: 'Error fetching tasks.', error });
+        }
+    };
 
-    const teamMembers = await TeamMember.find(query).select(
-      "name email teamMemberId role"
-    );
+    exports.getAllTasks = async (req, res) => {
+        try {
+            const { role, teamId } = req.user;
 
-    res.status(200).json(teamMembers);
-  } catch (err) {
-    console.error("Error fetching team members:", err);
-    res.status(500).json({ message: "Internal server error" });
-  }
-};
+            let tasks;
+            if (role === 'TeamLead') {
+                const team = await Team.findById(teamId);
+                const memberIds = team.members.map(member => member.teamMemberId);
+                tasks = await Task.find({ assignedTo: { $in: memberIds } });
+            } else {
+                tasks = await Task.find();
+            }
+
+            res.json(tasks);
+        } catch (error) {
+            res.status(500).json({ message: 'Error fetching all tasks.', error });
+        }
+    };
+
+    exports.getTaskHistoryByMemberId = async (req, res) => {
+        try {
+            const { teamMemberId } = req.params;
+            const tasks = await Task.find({ assignedTo: teamMemberId });
+            res.json(tasks);
+        } catch (error) {
+            res.status(500).json({ message: 'Error fetching task history.', error });
+        }
+    };
+
+    exports.getOngoingTasks = async (req, res) => {
+        try {
+            const { teamMemberId } = req.params;
+            const tasks = await Task.find({ assignedTo: teamMemberId, status: 'In Progress' });
+            res.json(tasks);
+        } catch (error) {
+            res.status(500).json({ message: 'Error fetching ongoing tasks.', error });
+        }
+    };
+
+    exports.updateTasksByTeamMemberId = async (req, res) => {
+        try {
+            const { teamMemberId } = req.params;
+            const { newAssignedTo, status } = req.body;
+
+            const tasks = await Task.find({ assignedTo: teamMemberId });
+            if (tasks.length === 0) {
+                return res.status(404).json({ message: 'No tasks found for the given teamMemberId.' });
+            }
+
+            const isAuthorized = req.user.role.toLowerCase() === 'owner' || req.user.role.toLowerCase() === 'admin';
+
+            if (!isAuthorized) {
+                const unauthorizedTask = tasks.find(task => String(task.assignedBy) !== String(req.user._id));
+                if (unauthorizedTask) {
+                    return res.status(403).json({ message: 'Not authorized to update some tasks.' });
+                }
+            }
+
+            const updatePayload = {};
+            if (newAssignedTo) {
+                const team = await Team.findOne({ 'members.teamMemberId': newAssignedTo });
+                if (!team) return res.status(404).json({ message: 'New assigned member not found.' });
+                updatePayload.assignedTo = newAssignedTo;
+                updatePayload.status = 'Pending';
+            }
+
+            if (status) {
+                if (!['Pending', 'In Progress', 'Completed'].includes(status)) {
+                    return res.status(400).json({ message: 'Invalid status value.' });
+                }
+                updatePayload.status = status;
+            }
+
+            if (Object.keys(updatePayload).length === 0) {
+                return res.status(400).json({ message: 'No valid update fields provided.' });
+            }
+
+            await Task.updateMany({ assignedTo: teamMemberId }, updatePayload);
+
+            res.json({ message: 'Tasks updated successfully.' });
+        } catch (error) {
+            res.status(500).json({ message: 'Error updating tasks.', error });
+        }
+    };
+
+    exports.deleteTasksByTeamMemberId = async (req, res) => {
+        try {
+            const { teamMemberId } = req.params;
+
+            const tasks = await Task.find({ assignedTo: teamMemberId });
+            if (tasks.length === 0) {
+                return res.status(404).json({ message: 'No tasks found for the given teamMemberId.' });
+            }
+
+            const isAuthorized = req.user.role.toLowerCase() === 'owner' || req.user.role.toLowerCase() === 'admin';
+
+            if (!isAuthorized) {
+                const unauthorizedTask = tasks.find(task => String(task.assignedBy) !== String(req.user._id));
+                if (unauthorizedTask) {
+                    return res.status(403).json({ message: 'Not authorized to delete some tasks.' });
+                }
+            }
+
+            await Task.deleteMany({ assignedTo: teamMemberId });
+            res.json({ message: 'All tasks for this team member have been deleted.' });
+        } catch (error) {
+            res.status(500).json({ message: 'Error deleting tasks.', error });
+        }
+        
+    };

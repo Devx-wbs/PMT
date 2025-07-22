@@ -84,12 +84,11 @@ exports.register = async (req, res) => {
     });
     await newUser.save();
 
-    // await sendEmail(
-    //   email,
-    //   '🎉 Registration Successful - Welcome Aboard!',
-    //   `Hello ${companyName},\n\nThank you for registering on our platform.\n\nYou are now registered as an "Owner". You can log in and start managing your team.\n\nRegards,\nTeamTrak`
-    // );
-    // Email sending temporarily disabled for debugging
+    await sendEmail(
+    email,
+    '🎉 Registration Successful - Welcome Aboard!',
+    `Hello ${companyName},\n\nThank you for registering on our platform.\n\nYou are now registered as an "Owner". You can log in and start managing your team.\n\nRegards,\nTeamTrak`
+    );
 
     res.status(201).json({ message: "Registered as owner" });
   } catch (err) {

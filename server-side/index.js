@@ -6,12 +6,11 @@ const app = express();
 const bodyParser = require("body-parser");
 const userRoutes = require("./routes/userRoutes");
 const teamRoutes = require("./routes/teamRoutes");
-// const teamMemberRoutes = require("./routes/teamMemberRoutes");
 const employeeRoutes = require("./routes/employeeRoutes"); // updated
-const projectRoutes = require("./routes/projectRoutes");
+const projectRoutes = require('./routes/projectRoutes');
+const taskRoutes = require('./routes/taskRoutes'); // task routes
 const path = require("path");
 const cors = require("cors");
-const cleanupJob = require("./jobs/cleanupJob");
 
 app.use(
   cors({
@@ -32,9 +31,9 @@ mongoose
 
 app.use("/api", userRoutes);
 app.use("/api/teams", teamRoutes);
-// app.use("/api/teamMembers", teamMemberRoutes);
 app.use("/api/employees", employeeRoutes); // updated
-app.use("/api/projects", projectRoutes);
+app.use('/api/projects', projectRoutes);
+app.use('/api/tasks', taskRoutes); // task routes
 
 // Simple test route for debugging
 app.get("/api/test", (req, res) => {
@@ -44,3 +43,4 @@ app.get("/api/test", (req, res) => {
 app.listen(8000, () => {
   console.log("Server is running on port 8000");
 });
+
