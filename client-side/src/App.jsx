@@ -12,6 +12,7 @@ import MainLayout from "./components/MainLayout";
 import Profile from "./pages/Profile";
 import ProtectedRoute from "./components/ProtectedRoute";
 import CreateProject from "./pages/CreateProject";
+import EmpLogin from "./pages/Login/emp_login";
 
 function App() {
   return (
@@ -20,6 +21,7 @@ function App() {
         <Route path="/" element={<Home />} />
         <Route path="/Register" element={<Register />} />
         <Route path="/Login" element={<Login />} />
+        <Route path="/emp-login" element={<EmpLogin />} />
         <Route
           path="/TeamMember"
           element={
@@ -60,7 +62,7 @@ function App() {
             </ProtectedRoute>
           }
         />
-           <Route
+        <Route
           path="/CreateProject"
           element={
             <ProtectedRoute>
@@ -90,15 +92,12 @@ function App() {
             </ProtectedRoute>
           }
         />
-        
       </Routes>
     </BrowserRouter>
   );
 }
 
 export default App;
-
-
 
 // import React from "react";
 // import { BrowserRouter, Routes, Route } from "react-router-dom";
@@ -125,7 +124,6 @@ export default App;
 //         <Route path="/WorkHistory" element={<WorkHistory />} />
 //         <Route path="/AllProject" element={<AllProject />} />
 //         <Route path="/CreateProject" element={<CreateProject />} />
-
 
 //       </Routes>
 //     </BrowserRouter>

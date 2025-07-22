@@ -1,16 +1,20 @@
 import axios from "axios";
 import { Methods } from "./Api";
 export const apiHandler = {
-  PostApi: async (url, data) => {
+  PostApi: async (url, data, token) => {
     // console.log("jnkjnjknjknjk",url);
     let result = {};
+    let headers = {
+      "Content-Type": "application/json",
+    };
+    if (token) {
+      headers["Authorization"] = `Bearer ${token}`;
+    }
     let config = {
       method: Methods.Post,
       maxBodyLength: Infinity,
       url: url,
-      headers: {
-        "Content-Type": "application/json",
-      },
+      headers: headers,
       data: data,
     };
     await axios
