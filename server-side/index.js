@@ -31,7 +31,8 @@ mongoose
 
 app.use("/api", userRoutes);
 app.use("/api/teams", teamRoutes);
-app.use("/api/teamMembers", teamMemberRoutes);
+// app.use("/api/teamMembers", teamMemberRoutes);
+app.use("/api/employees", employeeRoutes); // updated
 
 // Simple test route for debugging
 app.get("/api/test", (req, res) => {
