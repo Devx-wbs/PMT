@@ -21,25 +21,50 @@ function Toast({ message, type, onClose }) {
   );
 }
 
+const getUserType = () => {
+  const storedType = localStorage.getItem("userType");
+  if (storedType) return storedType;
+  // fallback: try to infer from user object
+  const stored = localStorage.getItem("user");
+  if (stored) {
+    const u = JSON.parse(stored);
+    if (u.companyName) return "user";
+    if (u.teamMemberId) return "employee";
+  }
+  return "user";
+};
+
 const Profile = () => {
   const [user, setUser] = useState(() => {
     const stored = localStorage.getItem("user");
     return stored ? JSON.parse(stored) : {};
   });
+  const [userType, setUserType] = useState(getUserType());
   const [editMode, setEditMode] = useState(false);
-  const [form, setForm] = useState({
-    companyName: user.companyName || "",
-    companyDomain: user.companyDomain || "",
-    companyAddress: user.companyAddress || "",
-    founded_year: user.founded_year || "",
-    website: user.website || "",
-    industry: user.industry || "",
-    firstName: user.firstName || "",
-    lastName: user.lastName || "",
-    email: user.email || "",
-    department: user.department || "",
-    accountType: user.accountType || "Standard",
-  });
+  const [form, setForm] = useState(
+    userType === "employee"
+      ? {
+          name: user.name || "",
+          email: user.email || "",
+          teamMemberId: user.teamMemberId || "",
+          leadMember: user.leadMember || "",
+          role: user.role || "employee",
+          location: user.location || "",
+        }
+      : {
+          companyName: user.companyName || "",
+          companyDomain: user.companyDomain || "",
+          companyAddress: user.companyAddress || "",
+          founded_year: user.founded_year || "",
+          website: user.website || "",
+          industry: user.industry || "",
+          firstName: user.firstName || "",
+          lastName: user.lastName || "",
+          email: user.email || "",
+          department: user.department || "",
+          accountType: user.accountType || "Standard",
+        }
+  );
   const [toast, setToast] = useState({ message: "", type: "success" });
   const [logoPreview, setLogoPreview] = useState(
     user.companyLogo ? api_url.base + user.companyLogo : null
@@ -63,12 +88,34 @@ const Profile = () => {
     e.preventDefault();
     setToast({ message: "", type: "success" });
     const token = localStorage.getItem("token");
-    console.log("Profile update token:", token);
     if (!token) {
       setToast({
         message: "No token found. Please log in again.",
         type: "error",
       });
+      return;
+    }
+    if (userType === "employee") {
+      // Employee update (use PUT /api/employees/editEmployee/:teamMemberId)
+      const response = await apiHandler.PutApi(
+        api_url.addEmployee.replace(
+          "/addEmployee",
+          `/editEmployee/${user.teamMemberId}`
+        ),
+        form,
+        token
+      );
+      if (response && response.employee) {
+        setUser(response.employee);
+        localStorage.setItem("user", JSON.stringify(response.employee));
+        setEditMode(false);
+        setToast({ message: "Profile updated successfully!", type: "success" });
+      } else {
+        setToast({
+          message: response?.message || "Update failed.",
+          type: "error",
+        });
+      }
       return;
     }
     // Use FormData for file upload
@@ -107,293 +154,438 @@ const Profile = () => {
         type={toast.type}
         onClose={() => setToast({ message: "", type: toast.type })}
       />
-      <div className="flex items-center gap-4 mb-8">
-        <img
-          src={
-            logoPreview ||
-            (user.companyLogo ? api_url.base + user.companyLogo : "/vite.svg")
-          }
-          alt="Company Logo"
-          className="h-16 w-16 rounded-full border object-cover"
-        />
+      {userType === "employee" ? (
         <div>
-          <h2 className="text-3xl font-bold">Company Profile</h2>
-        </div>
-        <button
-          className="ml-auto px-4 py-2 rounded bg-blue-600 text-white hover:bg-blue-700 transition"
-          onClick={() => setEditMode((prev) => !prev)}
-        >
-          {editMode ? "Cancel" : "Edit Profile"}
-        </button>
-      </div>
-      <div className="space-y-8">
-        {/* Company Details */}
-        <div className="bg-gray-50 rounded-lg p-6 shadow-sm">
-          <div className="flex items-center gap-2 mb-4">
-            <span className="text-xl font-semibold">🏢 Company Details</span>
-            <span className="text-gray-500 text-sm">
-              Basic information about your company
-            </span>
-          </div>
-          {editMode ? (
-            <form
-              onSubmit={handleUpdate}
-              className="grid grid-cols-1 sm:grid-cols-2 gap-4"
-              encType="multipart/form-data"
+          <div className="flex items-center gap-4 mb-8">
+            <div className="h-16 w-16 rounded-full border bg-gray-200 flex items-center justify-center text-2xl font-bold">
+              {user.name ? user.name[0] : "E"}
+            </div>
+            <div>
+              <h2 className="text-3xl font-bold">Employee Profile</h2>
+            </div>
+            <button
+              className="ml-auto px-4 py-2 rounded bg-blue-600 text-white hover:bg-blue-700 transition"
+              onClick={() => setEditMode((prev) => !prev)}
             >
-              <div className="col-span-2">
-                <label className="block text-sm font-medium">
-                  Company Logo
-                </label>
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={handleLogoChange}
-                />
-                {logoPreview && (
-                  <img
-                    src={logoPreview}
-                    alt="Logo Preview"
-                    className="h-16 mt-2 rounded border object-cover"
+              {editMode ? "Cancel" : "Edit Profile"}
+            </button>
+          </div>
+          <div className="bg-gray-50 rounded-lg p-6 shadow-sm">
+            {editMode ? (
+              <form
+                onSubmit={handleUpdate}
+                className="grid grid-cols-1 sm:grid-cols-2 gap-4"
+              >
+                <div>
+                  <label className="block text-sm font-medium">Name</label>
+                  <input
+                    name="name"
+                    value={form.name}
+                    onChange={handleChange}
+                    className="w-full border rounded px-3 py-2"
                   />
-                )}
+                </div>
+                <div>
+                  <label className="block text-sm font-medium">Email</label>
+                  <input
+                    name="email"
+                    value={form.email}
+                    onChange={handleChange}
+                    className="w-full border rounded px-3 py-2"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium">
+                    Team Member ID
+                  </label>
+                  <input
+                    value={form.teamMemberId}
+                    className="w-full border rounded px-3 py-2 bg-gray-100 cursor-not-allowed"
+                    readOnly
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium">
+                    Lead Member
+                  </label>
+                  <input
+                    name="leadMember"
+                    value={form.leadMember}
+                    onChange={handleChange}
+                    className="w-full border rounded px-3 py-2"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium">Role</label>
+                  <input
+                    name="role"
+                    value={form.role}
+                    onChange={handleChange}
+                    className="w-full border rounded px-3 py-2"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium">Location</label>
+                  <input
+                    name="location"
+                    value={form.location}
+                    onChange={handleChange}
+                    className="w-full border rounded px-3 py-2"
+                  />
+                </div>
+                <div className="col-span-2">
+                  <button
+                    type="submit"
+                    className="mt-4 px-6 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition"
+                  >
+                    Save Changes
+                  </button>
+                </div>
+              </form>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <div className="font-semibold">Name</div>
+                  <div>{user.name || "Not specified"}</div>
+                </div>
+                <div>
+                  <div className="font-semibold">Email</div>
+                  <div>{user.email || "Not specified"}</div>
+                </div>
+                <div>
+                  <div className="font-semibold">Team Member ID</div>
+                  <div>{user.teamMemberId || "Not specified"}</div>
+                </div>
+                <div>
+                  <div className="font-semibold">Lead Member</div>
+                  <div>{user.leadMember || "Not specified"}</div>
+                </div>
+                <div>
+                  <div className="font-semibold">Role</div>
+                  <div>{user.role || "Not specified"}</div>
+                </div>
+                <div>
+                  <div className="font-semibold">Location</div>
+                  <div>{user.location || "Not specified"}</div>
+                </div>
               </div>
-              <div>
-                <label className="block text-sm font-medium">
-                  Company Name
-                </label>
-                <input
-                  name="companyName"
-                  value={form.companyName}
-                  className="w-full border rounded px-3 py-2 bg-gray-100 cursor-not-allowed"
-                  readOnly
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium">Company ID</label>
-                <input
-                  value={user.companyID || ""}
-                  className="w-full border rounded px-3 py-2 bg-gray-100 cursor-not-allowed"
-                  readOnly
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium">
-                  Company Address
-                </label>
-                <input
-                  name="companyAddress"
-                  value={form.companyAddress}
-                  onChange={handleChange}
-                  className="w-full border rounded px-3 py-2"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium">
-                  Founded Year
-                </label>
-                <input
-                  value={user.founded_year || ""}
-                  className="w-full border rounded px-3 py-2 bg-gray-100 cursor-not-allowed"
-                  readOnly
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium">Website</label>
-                <input
-                  name="website"
-                  value={form.website}
-                  onChange={handleChange}
-                  className="w-full border rounded px-3 py-2"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium">Industry</label>
-                <input
-                  name="industry"
-                  value={form.industry}
-                  onChange={handleChange}
-                  className="w-full border rounded px-3 py-2"
-                />
-              </div>
-              <div className="col-span-2">
-                <button
-                  type="submit"
-                  className="mt-4 px-6 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition"
-                >
-                  Save Changes
-                </button>
-              </div>
-            </form>
-          ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <div className="font-semibold">Company Name</div>
-                <div>{user.companyName || "Not specified"}</div>
-              </div>
-              <div>
-                <div className="font-semibold">Company ID</div>
-                <div>{user.companyID || "Not specified"}</div>
-              </div>
-              <div>
-                <div className="font-semibold">Address</div>
-                <div>{user.companyAddress || "Not specified"}</div>
-              </div>
-              <div>
-                <div className="font-semibold">Website</div>
-                <div>{user.website || "Not specified"}</div>
-              </div>
-              <div>
-                <div className="font-semibold">Industry</div>
-                <div>{user.industry || "Not specified"}</div>
-              </div>
-              <div>
-                <div className="font-semibold">Founded Year</div>
-                <div>{user.founded_year || "Not specified"}</div>
-              </div>
-            </div>
-          )}
-        </div>
-        {/* User Information */}
-        <div className="bg-gray-50 rounded-lg p-6 shadow-sm">
-          <div className="flex items-center gap-2 mb-4">
-            <span className="text-xl font-semibold">👤 User Information</span>
-            <span className="text-gray-500 text-sm">
-              Your personal and professional details
-            </span>
+            )}
           </div>
-          {editMode ? (
-            <form
-              onSubmit={handleUpdate}
-              className="grid grid-cols-1 sm:grid-cols-2 gap-4"
+        </div>
+      ) : (
+        <div className="max-w-5xl mx-auto mt-16 p-4 sm:p-8 bg-white rounded-xl shadow">
+          <Toast
+            message={toast.message}
+            type={toast.type}
+            onClose={() => setToast({ message: "", type: toast.type })}
+          />
+          <div className="flex items-center gap-4 mb-8">
+            <img
+              src={
+                logoPreview ||
+                (user.companyLogo
+                  ? api_url.base + user.companyLogo
+                  : "/vite.svg")
+              }
+              alt="Company Logo"
+              className="h-16 w-16 rounded-full border object-cover"
+            />
+            <div>
+              <h2 className="text-3xl font-bold">Company Profile</h2>
+            </div>
+            <button
+              className="ml-auto px-4 py-2 rounded bg-blue-600 text-white hover:bg-blue-700 transition"
+              onClick={() => setEditMode((prev) => !prev)}
             >
-              <div>
-                <label className="block text-sm font-medium">First Name</label>
-                <input
-                  name="firstName"
-                  value={form.firstName}
-                  onChange={handleChange}
-                  className="w-full border rounded px-3 py-2"
-                />
+              {editMode ? "Cancel" : "Edit Profile"}
+            </button>
+          </div>
+          <div className="space-y-8">
+            {/* Company Details */}
+            <div className="bg-gray-50 rounded-lg p-6 shadow-sm">
+              <div className="flex items-center gap-2 mb-4">
+                <span className="text-xl font-semibold">
+                  🏢 Company Details
+                </span>
+                <span className="text-gray-500 text-sm">
+                  Basic information about your company
+                </span>
               </div>
-              <div>
-                <label className="block text-sm font-medium">Last Name</label>
-                <input
-                  name="lastName"
-                  value={form.lastName}
-                  onChange={handleChange}
-                  className="w-full border rounded px-3 py-2"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium">Email</label>
-                <input
-                  name="email"
-                  value={form.email}
-                  onChange={handleChange}
-                  className="w-full border rounded px-3 py-2"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium">Department</label>
-                <input
-                  name="department"
-                  value={form.department}
-                  onChange={handleChange}
-                  className="w-full border rounded px-3 py-2"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium">
-                  Account Type
-                </label>
-                <input
-                  name="accountType"
-                  value={form.accountType}
-                  onChange={handleChange}
-                  className="w-full border rounded px-3 py-2"
-                />
-              </div>
-              <div className="col-span-2">
-                <button
-                  type="submit"
-                  className="mt-4 px-6 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition"
+              {editMode ? (
+                <form
+                  onSubmit={handleUpdate}
+                  className="grid grid-cols-1 sm:grid-cols-2 gap-4"
+                  encType="multipart/form-data"
                 >
-                  Save Changes
-                </button>
+                  <div className="col-span-2">
+                    <label className="block text-sm font-medium">
+                      Company Logo
+                    </label>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleLogoChange}
+                    />
+                    {logoPreview && (
+                      <img
+                        src={logoPreview}
+                        alt="Logo Preview"
+                        className="h-16 mt-2 rounded border object-cover"
+                      />
+                    )}
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium">
+                      Company Name
+                    </label>
+                    <input
+                      name="companyName"
+                      value={form.companyName}
+                      className="w-full border rounded px-3 py-2 bg-gray-100 cursor-not-allowed"
+                      readOnly
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium">
+                      Company ID
+                    </label>
+                    <input
+                      value={user.companyID || ""}
+                      className="w-full border rounded px-3 py-2 bg-gray-100 cursor-not-allowed"
+                      readOnly
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium">
+                      Company Address
+                    </label>
+                    <input
+                      name="companyAddress"
+                      value={form.companyAddress}
+                      onChange={handleChange}
+                      className="w-full border rounded px-3 py-2"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium">
+                      Founded Year
+                    </label>
+                    <input
+                      value={user.founded_year || ""}
+                      className="w-full border rounded px-3 py-2 bg-gray-100 cursor-not-allowed"
+                      readOnly
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium">Website</label>
+                    <input
+                      name="website"
+                      value={form.website}
+                      onChange={handleChange}
+                      className="w-full border rounded px-3 py-2"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium">
+                      Industry
+                    </label>
+                    <input
+                      name="industry"
+                      value={form.industry}
+                      onChange={handleChange}
+                      className="w-full border rounded px-3 py-2"
+                    />
+                  </div>
+                  <div className="col-span-2">
+                    <button
+                      type="submit"
+                      className="mt-4 px-6 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition"
+                    >
+                      Save Changes
+                    </button>
+                  </div>
+                </form>
+              ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <div className="font-semibold">Company Name</div>
+                    <div>{user.companyName || "Not specified"}</div>
+                  </div>
+                  <div>
+                    <div className="font-semibold">Company ID</div>
+                    <div>{user.companyID || "Not specified"}</div>
+                  </div>
+                  <div>
+                    <div className="font-semibold">Address</div>
+                    <div>{user.companyAddress || "Not specified"}</div>
+                  </div>
+                  <div>
+                    <div className="font-semibold">Website</div>
+                    <div>{user.website || "Not specified"}</div>
+                  </div>
+                  <div>
+                    <div className="font-semibold">Industry</div>
+                    <div>{user.industry || "Not specified"}</div>
+                  </div>
+                  <div>
+                    <div className="font-semibold">Founded Year</div>
+                    <div>{user.founded_year || "Not specified"}</div>
+                  </div>
+                </div>
+              )}
+            </div>
+            {/* User Information */}
+            <div className="bg-gray-50 rounded-lg p-6 shadow-sm">
+              <div className="flex items-center gap-2 mb-4">
+                <span className="text-xl font-semibold">
+                  👤 User Information
+                </span>
+                <span className="text-gray-500 text-sm">
+                  Your personal and professional details
+                </span>
               </div>
-            </form>
-          ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <div className="font-semibold">Full Name</div>
+              {editMode ? (
+                <form
+                  onSubmit={handleUpdate}
+                  className="grid grid-cols-1 sm:grid-cols-2 gap-4"
+                >
+                  <div>
+                    <label className="block text-sm font-medium">
+                      First Name
+                    </label>
+                    <input
+                      name="firstName"
+                      value={form.firstName}
+                      onChange={handleChange}
+                      className="w-full border rounded px-3 py-2"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium">
+                      Last Name
+                    </label>
+                    <input
+                      name="lastName"
+                      value={form.lastName}
+                      onChange={handleChange}
+                      className="w-full border rounded px-3 py-2"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium">Email</label>
+                    <input
+                      name="email"
+                      value={form.email}
+                      onChange={handleChange}
+                      className="w-full border rounded px-3 py-2"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium">
+                      Department
+                    </label>
+                    <input
+                      name="department"
+                      value={form.department}
+                      onChange={handleChange}
+                      className="w-full border rounded px-3 py-2"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium">
+                      Account Type
+                    </label>
+                    <input
+                      name="accountType"
+                      value={form.accountType}
+                      onChange={handleChange}
+                      className="w-full border rounded px-3 py-2"
+                    />
+                  </div>
+                  <div className="col-span-2">
+                    <button
+                      type="submit"
+                      className="mt-4 px-6 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition"
+                    >
+                      Save Changes
+                    </button>
+                  </div>
+                </form>
+              ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <div className="font-semibold">Full Name</div>
+                    <div>
+                      {user.firstName || ""} {user.lastName || ""}
+                    </div>
+                  </div>
+                  <div>
+                    <div className="font-semibold">Employee ID</div>
+                    <div>{user.employeeID || "Not specified"}</div>
+                  </div>
+                  <div>
+                    <div className="font-semibold">Email</div>
+                    <div>{user.email || "Not specified"}</div>
+                  </div>
+                  <div>
+                    <div className="font-semibold">Department</div>
+                    <div>{user.department || "Not specified"}</div>
+                  </div>
+                  <div>
+                    <div className="font-semibold">Role</div>
+                    <div>{user.role || "Not specified"}</div>
+                  </div>
+                  <div>
+                    <div className="font-semibold">Join Date</div>
+                    <div>
+                      {user.joinDate
+                        ? new Date(user.joinDate).toLocaleDateString()
+                        : "Not specified"}
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+            {/* Account Settings (view only) */}
+            <div className="bg-gray-50 rounded-lg p-6 shadow-sm">
+              <div className="flex items-center gap-2 mb-4">
+                <span className="text-xl font-semibold">
+                  ⚙️ Account Settings
+                </span>
+                <span className="text-gray-500 text-sm">
+                  Your account preferences and settings
+                </span>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  {user.firstName || ""} {user.lastName || ""}
+                  <div className="font-semibold">Account Status</div>
+                  <div className="text-green-600 font-medium">
+                    {user.accountStatus || "Active"}
+                  </div>
+                </div>
+                <div>
+                  <div className="font-semibold">Email Verification</div>
+                  <div className="text-green-600 font-medium">
+                    {user.emailVerified ? "Verified" : "Not Verified"}
+                  </div>
+                </div>
+                <div>
+                  <div className="font-semibold">Last Login</div>
+                  <div>
+                    {user.lastLogin
+                      ? new Date(user.lastLogin).toLocaleString()
+                      : "Not specified"}
+                  </div>
+                </div>
+                <div>
+                  <div className="font-semibold">Account Type</div>
+                  <div>{user.accountType || "Standard"}</div>
                 </div>
               </div>
-              <div>
-                <div className="font-semibold">Employee ID</div>
-                <div>{user.employeeID || "Not specified"}</div>
-              </div>
-              <div>
-                <div className="font-semibold">Email</div>
-                <div>{user.email || "Not specified"}</div>
-              </div>
-              <div>
-                <div className="font-semibold">Department</div>
-                <div>{user.department || "Not specified"}</div>
-              </div>
-              <div>
-                <div className="font-semibold">Role</div>
-                <div>{user.role || "Not specified"}</div>
-              </div>
-              <div>
-                <div className="font-semibold">Join Date</div>
-                <div>
-                  {user.joinDate
-                    ? new Date(user.joinDate).toLocaleDateString()
-                    : "Not specified"}
-                </div>
-              </div>
-            </div>
-          )}
-        </div>
-        {/* Account Settings (view only) */}
-        <div className="bg-gray-50 rounded-lg p-6 shadow-sm">
-          <div className="flex items-center gap-2 mb-4">
-            <span className="text-xl font-semibold">⚙️ Account Settings</span>
-            <span className="text-gray-500 text-sm">
-              Your account preferences and settings
-            </span>
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <div className="font-semibold">Account Status</div>
-              <div className="text-green-600 font-medium">
-                {user.accountStatus || "Active"}
-              </div>
-            </div>
-            <div>
-              <div className="font-semibold">Email Verification</div>
-              <div className="text-green-600 font-medium">
-                {user.emailVerified ? "Verified" : "Not Verified"}
-              </div>
-            </div>
-            <div>
-              <div className="font-semibold">Last Login</div>
-              <div>
-                {user.lastLogin
-                  ? new Date(user.lastLogin).toLocaleString()
-                  : "Not specified"}
-              </div>
-            </div>
-            <div>
-              <div className="font-semibold">Account Type</div>
-              <div>{user.accountType || "Standard"}</div>
             </div>
           </div>
         </div>
-      </div>
+      )}
     </div>
   );
 };

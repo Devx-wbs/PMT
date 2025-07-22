@@ -7,7 +7,7 @@ const bodyParser = require("body-parser");
 const userRoutes = require("./routes/userRoutes");
 const teamRoutes = require("./routes/teamRoutes");
 // const teamMemberRoutes = require("./routes/teamMemberRoutes");
-const employeeRoutes = require('./routes/employeeRoutes'); // updated
+const employeeRoutes = require("./routes/employeeRoutes"); // updated
 const path = require("path");
 const cors = require("cors");
 

@@ -2,6 +2,7 @@ const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const User = require("../models/User");
 const sendEmail = require("../utils/sendEmail");
+const Employee = require("../models/Employee");
 
 // APIs for user(company/owner) - registration, login, update
 exports.register = async (req, res) => {
@@ -105,47 +106,76 @@ exports.login = async (req, res) => {
       return res.status(400).json({ message: "Required fields missing" });
     }
 
+    // Try User login first
     const userWithPassword = await User.findOne({ email });
-    if (!userWithPassword) {
-      return res.status(404).json({ message: "User not found" });
-    }
-
-    const isMatch = await bcrypt.compare(password, userWithPassword.password);
-    if (!isMatch) {
-      return res.status(400).json({ message: "Wrong password" });
-    }
-
-    let token = userWithPassword.token;
-    let isTokenValid = false;
-
-    if (token) {
-      try {
-        jwt.verify(token, "secret123");
-        isTokenValid = true;
-      } catch (err) {
-        isTokenValid = false;
+    if (userWithPassword) {
+      const isMatch = await bcrypt.compare(password, userWithPassword.password);
+      if (!isMatch) {
+        return res.status(400).json({ message: "Wrong password" });
       }
-    }
-
-    if (!isTokenValid) {
-      token = jwt.sign({ id: userWithPassword._id }, "secret123", {
-        expiresIn: "7d",
-      });
-      userWithPassword.token = token;
+      let token = userWithPassword.token;
+      let isTokenValid = false;
+      if (token) {
+        try {
+          jwt.verify(token, "secret123");
+          isTokenValid = true;
+        } catch (err) {
+          isTokenValid = false;
+        }
+      }
+      if (!isTokenValid) {
+        token = jwt.sign({ id: userWithPassword._id }, "secret123", {
+          expiresIn: "7d",
+        });
+        userWithPassword.token = token;
+        await userWithPassword.save();
+      }
+      userWithPassword.lastLogin = new Date();
       await userWithPassword.save();
+      const { password: _, ...userDetails } = userWithPassword.toObject();
+      return res.json({
+        message: "Login successful",
+        token,
+        user: userDetails,
+        type: "user",
+      });
     }
 
-    // On login, update lastLogin
-    userWithPassword.lastLogin = new Date();
-    await userWithPassword.save();
+    // Try Employee login
+    const employee = await Employee.findOne({ email });
+    if (employee) {
+      const isMatch = await bcrypt.compare(password, employee.password);
+      if (!isMatch) {
+        return res.status(400).json({ message: "Wrong password" });
+      }
+      // Optionally generate a token for employee
+      let token = employee.token;
+      let isTokenValid = false;
+      if (token) {
+        try {
+          jwt.verify(token, "secret123");
+          isTokenValid = true;
+        } catch (err) {
+          isTokenValid = false;
+        }
+      }
+      if (!isTokenValid) {
+        token = jwt.sign({ id: employee._id }, "secret123", {
+          expiresIn: "7d",
+        });
+        employee.token = token;
+        await employee.save();
+      }
+      const { password: _, ...employeeDetails } = employee.toObject();
+      return res.json({
+        message: "Login successful",
+        token,
+        employee: employeeDetails,
+        type: "employee",
+      });
+    }
 
-    const { password: _, ...userDetails } = userWithPassword.toObject();
-
-    res.json({
-      message: "Login successful",
-      token,
-      user: userDetails,
-    });
+    return res.status(404).json({ message: "User not found" });
   } catch (err) {
     console.error("Login error:", err);
     res.status(500).json({ message: "Server error" });

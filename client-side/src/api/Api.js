@@ -5,6 +5,7 @@ export const api_url = {
   createProject: BASE_URL + "/projects/add",
   addEmployee: BASE_URL + "/employees/addEmployee",
   employeeFirstLogin: BASE_URL + "/employees/employeeFirstLogin",
+  getAllEmployees: BASE_URL + "/employees/all",
 };
 
 export const Methods = {
