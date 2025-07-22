@@ -41,10 +41,22 @@ const Profile = () => {
     accountType: user.accountType || "Standard",
   });
   const [toast, setToast] = useState({ message: "", type: "success" });
+  const [logoPreview, setLogoPreview] = useState(
+    user.companyLogo ? api_url.base + user.companyLogo : null
+  );
+  const [logoFile, setLogoFile] = useState(null);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setForm((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleLogoChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setLogoFile(file);
+      setLogoPreview(URL.createObjectURL(file));
+    }
   };
 
   const handleUpdate = async (e) => {
@@ -59,17 +71,27 @@ const Profile = () => {
       });
       return;
     }
+    // Use FormData for file upload
+    const formData = new FormData();
+    Object.entries(form).forEach(([key, value]) => {
+      formData.append(key, value);
+    });
+    if (logoFile) {
+      formData.append("companyLogo", logoFile);
+    }
     // Use PATCH for update
     const response = await apiHandler.UpdateApi(
       api_url.register.replace("/register", "/update"),
-      form,
-      token
+      formData,
+      token,
+      true // isFormData
     );
     if (response && response.user) {
       setUser(response.user);
       localStorage.setItem("user", JSON.stringify(response.user));
       setEditMode(false);
       setToast({ message: "Profile updated successfully!", type: "success" });
+      setLogoFile(null);
     } else {
       setToast({
         message: response?.message || "Update failed.",
@@ -87,9 +109,12 @@ const Profile = () => {
       />
       <div className="flex items-center gap-4 mb-8">
         <img
-          src="/vite.svg"
-          alt="Profile"
-          className="h-16 w-16 rounded-full border"
+          src={
+            logoPreview ||
+            (user.companyLogo ? api_url.base + user.companyLogo : "/vite.svg")
+          }
+          alt="Company Logo"
+          className="h-16 w-16 rounded-full border object-cover"
         />
         <div>
           <h2 className="text-3xl font-bold">Company Profile</h2>
@@ -114,7 +139,25 @@ const Profile = () => {
             <form
               onSubmit={handleUpdate}
               className="grid grid-cols-1 sm:grid-cols-2 gap-4"
+              encType="multipart/form-data"
             >
+              <div className="col-span-2">
+                <label className="block text-sm font-medium">
+                  Company Logo
+                </label>
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleLogoChange}
+                />
+                {logoPreview && (
+                  <img
+                    src={logoPreview}
+                    alt="Logo Preview"
+                    className="h-16 mt-2 rounded border object-cover"
+                  />
+                )}
+              </div>
               <div>
                 <label className="block text-sm font-medium">
                   Company Name

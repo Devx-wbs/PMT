@@ -21,6 +21,7 @@ const userSchema = new mongoose.Schema({
   lastLogin: { type: Date },
   accountType: { type: String, default: "Standard" },
   token: { type: String },
+  companyLogo: { type: String },
 });
 
 module.exports = mongoose.model("User", userSchema);
