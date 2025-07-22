@@ -100,6 +100,25 @@ const Section_a = () => {
     }
   };
 
+  const handleDelete = async (teamMemberId) => {
+    const token = localStorage.getItem("token");
+    try {
+      const response = await apiHandler.DeleteApi(
+        api_url.deleteEmployee.replace(":teamMemberId", teamMemberId),
+        token
+      );
+      if (response && response.message === "Employee deleted successfully") {
+        setTeamMembers((prev) =>
+          prev.filter((emp) => emp.teamMemberId !== teamMemberId)
+        );
+      } else {
+        alert(response?.message || "Failed to delete employee");
+      }
+    } catch (err) {
+      alert("Failed to delete employee");
+    }
+  };
+
   return (
     <div className="p-4 sm:p-6 md:p-10">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 gap-3">
@@ -286,6 +305,7 @@ const Section_a = () => {
                     <Trash2
                       size={16}
                       className="text-red-600 cursor-pointer hover:text-red-800"
+                      onClick={() => handleDelete(member.teamMemberId)}
                     />
                   </DialogTrigger>
                   <DialogContent className="sm:max-w-[420px] ">

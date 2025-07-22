@@ -11,6 +11,11 @@ router.put(
   authMiddleware,
   employeeController.editEmployee
 );
+router.delete(
+  "/deleteEmployee/:teamMemberId",
+  authMiddleware,
+  employeeController.deleteEmployee
+);
 router.get("/all", authMiddleware, employeeController.getAllEmployees);
 
 module.exports = router;

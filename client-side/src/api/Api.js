@@ -8,6 +8,7 @@ export const api_url = {
   employeeFirstLogin: BASE_URL + "/employees/employeeFirstLogin",
   getAllEmployees: BASE_URL + "/employees/all",
   getAllProjects: BASE_URL + "/projects",
+  deleteEmployee: BASE_URL + "/employees/deleteEmployee/:teamMemberId",
 };
 
 export const Methods = {

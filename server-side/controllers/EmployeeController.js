@@ -1,6 +1,6 @@
-const Employee = require('../models/Employee');
+const Employee = require("../models/Employee");
 const bcrypt = require("bcryptjs");
-const jwt = require('jsonwebtoken');
+const jwt = require("jsonwebtoken");
 const crypto = require("crypto");
 const sendEmail = require("../utils/sendEmail");
 
@@ -61,13 +61,11 @@ exports.addEmployee = async (req, res) => {
       email,
       "Welcome to the Team",
       `Hi ${name},
-
-You've been added as an employee in ${req.user.companyName}.
-
-Login Email: ${email}
+\nYou've been added as an employee in ${req.user.companyName}.
+\nLogin Email: ${email}
 Password: ${autoPassword}
-
-Note: This is an auto-generated password and it will expire in 5 minutes. Please log in and update your password.`
+\nTo set your password and activate your account, please log in here (valid for 5 minutes):\nhttp://localhost:5173/emp-login
+\nNote: This is an auto-generated password and it will expire in 5 minutes. If you do not set your password in time, your account will be deleted automatically.`
     );
 
     res
@@ -164,9 +162,13 @@ exports.login = async (req, res) => {
     }
 
     // ✅ Create token
-    const token = jwt.sign({ id: employee._id, role: employee.role }, 'secret123', {
-      expiresIn: '7d',
-    });
+    const token = jwt.sign(
+      { id: employee._id, role: employee.role },
+      "secret123",
+      {
+        expiresIn: "7d",
+      }
+    );
 
     res.status(200).json({
       message: "Login successful",
@@ -224,13 +226,34 @@ exports.editEmployee = async (req, res) => {
   }
 };
 
+// DELETE employee by teamMemberId, but keep the ID reserved
+exports.deleteEmployee = async (req, res) => {
+  const { teamMemberId } = req.params;
+  if (!teamMemberId) {
+    return res.status(400).json({ message: "teamMemberId is required" });
+  }
+  try {
+    const employee = await Employee.findOne({ teamMemberId });
+    if (!employee) {
+      return res.status(404).json({ message: "Employee not found" });
+    }
+    // Optionally: store the used ID in a separate collection for future-proofing
+    // await UsedEmployeeId.create({ teamMemberId });
+    await Employee.deleteOne({ teamMemberId });
+    res.status(200).json({ message: "Employee deleted successfully" });
+  } catch (error) {
+    console.error("Error deleting employee:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
 // API: Get all employees
 exports.getAllEmployees = async (req, res) => {
   try {
-    const employees = await Employee.find().select('-password'); // Exclude password for security
+    const employees = await Employee.find().select("-password"); // Exclude password for security
     res.status(200).json(employees);
   } catch (error) {
-    console.error('Error fetching employees:', error);
-    res.status(500).json({ message: 'Internal server error' });
+    console.error("Error fetching employees:", error);
+    res.status(500).json({ message: "Internal server error" });
   }
 };
