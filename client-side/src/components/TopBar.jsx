@@ -58,11 +58,6 @@ const TopBar = () => {
         >
           <img
             src={`${image_url}${userDetails?.companyLogo}`}
-            src={
-              userDetails.companyLogo
-                ? api_url.base + userDetails.companyLogo
-                : { sampleLogo }
-            }
             alt="Company Logo"
             className="h-8 w-8 rounded-full border object-cover"
           />
@@ -75,8 +70,11 @@ const TopBar = () => {
 
         <div
           ref={dropdownRef}
-          className={`absolute right-0 mt-2 w-56 bg-white p-3 rounded-lg shadow-lg border z-50 overflow-hidden transition-all duration-200 ${open ? "opacity-100 scale-100 pointer-events-auto" : "opacity-0 scale-95 pointer-events-none"
-            }`}
+          className={`absolute right-0 mt-2 w-56 bg-white p-3 rounded-lg shadow-lg border z-50 overflow-hidden transition-all duration-200 ${
+            open
+              ? "opacity-100 scale-100 pointer-events-auto"
+              : "opacity-0 scale-95 pointer-events-none"
+          }`}
           style={{ top: "48px" }}
         >
           <div className="mb-3">
