@@ -11,6 +11,7 @@ import AllProject from "./pages/AllProject";
 import MainLayout from "./components/MainLayout";
 import Profile from "./pages/Profile";
 import ProtectedRoute from "./components/ProtectedRoute";
+import CreateProject from "./pages/CreateProject";
 
 function App() {
   return (
@@ -59,6 +60,16 @@ function App() {
             </ProtectedRoute>
           }
         />
+           <Route
+          path="/CreateProject"
+          element={
+            <ProtectedRoute>
+              <MainLayout>
+                <CreateProject />
+              </MainLayout>
+            </ProtectedRoute>
+          }
+        />
         <Route
           path="/AllProject"
           element={
@@ -79,9 +90,44 @@ function App() {
             </ProtectedRoute>
           }
         />
+        
       </Routes>
     </BrowserRouter>
   );
 }
 
 export default App;
+
+
+
+// import React from "react";
+// import { BrowserRouter, Routes, Route } from "react-router-dom";
+// import Register from "./pages/Register";
+// import Home from "./pages/Home";
+// import Login from "./pages/Login";
+// import TeamMember from "./pages/TeamMember";
+// import MyTeam from "./pages/MyTeam";
+// import DashBoard from "./pages/DashBoard";
+// import WorkHistory from "./pages/WorkHistory";
+// import AllProject from "./pages/AllProject";
+// import CreateProject from "./pages/CreateProject";
+
+// export default function App() {
+//   return (
+//     <BrowserRouter>
+//       <Routes>
+//         <Route path="/" element={<Home />} />
+//         <Route path="/Register" element={<Register />} />
+//         <Route path="/Login" element={<Login />} />
+//         <Route path="/TeamMember" element={<TeamMember />} />
+//         <Route path="/MyTeam" element={<MyTeam />} />
+//         <Route path="/DashBoard" element={<DashBoard />} />
+//         <Route path="/WorkHistory" element={<WorkHistory />} />
+//         <Route path="/AllProject" element={<AllProject />} />
+//         <Route path="/CreateProject" element={<CreateProject />} />
+
+
+//       </Routes>
+//     </BrowserRouter>
+//   );
+// }
