@@ -1,5 +1,6 @@
 const jwt = require("jsonwebtoken");
 const TeamMember = require("../models/Employee");
+const Team = require('../models/Team');
 
 const teamAuthMiddleware = async (req, res, next) => {
   const token = req.headers.authorization?.split(" ")[1];
