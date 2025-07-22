@@ -2,8 +2,8 @@ import { Link, useLocation } from "react-router-dom";
 
 const navLinks = [
   { to: "/Dashboard", label: "Overview" },
+  { to: "/CompanyMember", label: "Members" },
   { to: "/MyTeam", label: "My Team" },
-  { to: "/TeamMember", label: "Team Members" },
   { to: "/AllProject", label: "My Projects" },
   { to: "/WorkHistory", label: "Work History" },
   // Add more links as needed
