@@ -2,13 +2,12 @@ import { useState, useRef } from "react";
 import { Calendar } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { api_url } from "@/api/Api";
-import { apiHandler } from "@/api/ApiHandler";
 import { toast } from "react-toastify";
+import { apiHandler } from "@/api/ApiHandler";
 
 const Section_a = () => {
     const navigate = useNavigate();
-      const token = localStorage.getItem("token");
-      console.log(token, "token=====>");
+    const token = localStorage.getItem("token");
     const [form, setForm] = useState({
         projectName: "",
         description: "",
@@ -52,22 +51,24 @@ const Section_a = () => {
             project_name: form.projectName,
             client_name: form.clientName,
             project_description: form.description,
-            project_Lead: form.projectLead,
             project_status: form.status,
             start_date: form.startDate,
             end_date: form.endDate
         };
-        console.log("Form ===>:", obj);
+
+console.log(api_url, obj, token,"---------->>>");
 
         try {
-            const response = await apiHandler.postApiWithToken(api_url.createProject, obj,token);
-
+            const response = await apiHandler.postApiWithToken(api_url, obj, token);
+            alert(response?.message)
             if (response.success) {
+
                 toast.success("Project created successfully!");
                 navigate("/DashBoard");
             } else {
-                toast.error(response.message || "Something went wrong.");
+                toast.error(response.message || "Failed to save data");
             }
+
         } catch (error) {
             console.error("API Error:", error);
             toast.error("Server error. Please try again later.");

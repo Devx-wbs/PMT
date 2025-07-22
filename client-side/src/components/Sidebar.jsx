@@ -4,6 +4,7 @@ const navLinks = [
   { to: "/Dashboard", label: "Overview" },
   { to: "/TeamMember", label: "Members" },
   { to: "/MyTeam", label: "My Team" },
+    { to: "/AllTask", label: "All Task" },
   { to: "/AllProject", label: "My Projects" },
   { to: "/WorkHistory", label: "Work History" },
   // Add more links as needed

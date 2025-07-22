@@ -13,6 +13,7 @@ import Profile from "./pages/Profile";
 import ProtectedRoute from "./components/ProtectedRoute";
 import CreateProject from "./pages/CreateProject";
 import EmpLogin from "./pages/Login/emp_login";
+import AllTask from "./pages/AllTask";
 
 function App() {
   return (
@@ -42,6 +43,17 @@ function App() {
             </ProtectedRoute>
           }
         />
+           <Route
+          path="/AllTask"
+          element={
+            <ProtectedRoute>
+              <MainLayout>
+                <AllTask />
+              </MainLayout>
+            </ProtectedRoute>
+          }
+        />
+        
         <Route
           path="/DashBoard"
           element={

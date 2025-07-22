@@ -121,27 +121,21 @@ export const apiHandler = {
       });
     return result;
   },
-  postApiWithToken: async (url, data, token) => {
-    let config = {
-      method: Methods.Post,
-      maxBodyLength: Infinity,
-      url: url,
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      data: data,
-    };
-
-    await axios
-      .request(config)
-      .then(async (response) => {
-        result = await response.data;
-      })
-      .catch(async (error) => {
-        result = await error.response.data;
+postApiWithToken: async (url, data, token) => {
+    try {
+      const response = await axios({
+        method: "POST",
+        url,
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        data,
       });
-    return result;
+      return response.data;
+    } catch (error) {
+      return error.response?.data || { success: false, message: "API error" };
+    }
   },
   imageUpload: async (url, data, accessToken) => {
     let result = [];
