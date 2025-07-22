@@ -8,9 +8,10 @@ const userRoutes = require("./routes/userRoutes");
 const teamRoutes = require("./routes/teamRoutes");
 // const teamMemberRoutes = require("./routes/teamMemberRoutes");
 const employeeRoutes = require("./routes/employeeRoutes"); // updated
-const projectRoutes = require('./routes/projectRoutes');
+const projectRoutes = require("./routes/projectRoutes");
 const path = require("path");
 const cors = require("cors");
+const cleanupJob = require("./jobs/cleanupJob");
 
 app.use(
   cors({
@@ -33,7 +34,7 @@ app.use("/api", userRoutes);
 app.use("/api/teams", teamRoutes);
 // app.use("/api/teamMembers", teamMemberRoutes);
 app.use("/api/employees", employeeRoutes); // updated
-app.use('/api/projects', projectRoutes);
+app.use("/api/projects", projectRoutes);
 
 // Simple test route for debugging
 app.get("/api/test", (req, res) => {
