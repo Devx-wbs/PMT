@@ -60,7 +60,6 @@ const Section_a = () => {
       end_date: form.endDate,
     };
 
-    console.log(api_url, obj, token, "---------->>>");
 
     try {
       const response = await apiHandler.postApiWithToken(
