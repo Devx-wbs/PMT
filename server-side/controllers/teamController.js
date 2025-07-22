@@ -85,22 +85,21 @@ exports.deleteTeam = async (req, res) => {
   }
 };
 
+// Add Member to Team
 exports.addMember = async (req, res) => {
   try {
-    const { teamLeadName, teamName, memberName } = req.body;
+    const { teamLeadId, teamName, teamMemberId } = req.body;
 
-    if (!teamLeadName || !teamName || !memberName) {
+    if (!teamLeadId || !teamName || !teamMemberId) {
       return res.status(400).json({ message: "All fields are required" });
     }
 
     const teamLead = await Employee.findOne({
-      name: teamLeadName.trim(),
+      teamMemberId: teamLeadId.trim(),
       role: "teamLead",
     });
     if (!teamLead) {
-      return res
-        .status(403)
-        .json({ message: "Only team leads can add members" });
+      return res.status(403).json({ message: "Only team leads can add members" });
     }
 
     const team = await Team.findOne({
@@ -108,19 +107,15 @@ exports.addMember = async (req, res) => {
       teamLead: teamLead._id,
     });
     if (!team) {
-      return res
-        .status(404)
-        .json({ message: "Team not found or not owned by this team lead" });
+      return res.status(404).json({ message: "Team not found or not owned by this team lead" });
     }
 
     const memberToAdd = await Employee.findOne({
-      name: memberName.trim(),
+      teamMemberId: teamMemberId.trim(),
       role: "teamMember",
     });
     if (!memberToAdd) {
-      return res
-        .status(400)
-        .json({ message: "Provided name is not a valid team_Member" });
+      return res.status(400).json({ message: "Provided ID is not a valid team member" });
     }
 
     if (team.members.includes(memberToAdd._id)) {
@@ -130,31 +125,28 @@ exports.addMember = async (req, res) => {
     team.members.push(memberToAdd._id);
     await team.save();
 
-    res
-      .status(200)
-      .json({ message: "Member added to team successfully", team });
+    res.status(200).json({ message: "Member added to team successfully", team });
   } catch (err) {
     console.error("Error adding team member:", err);
     res.status(500).json({ message: "Server error" });
   }
 };
 
+// Remove Member from Team
 exports.removeMember = async (req, res) => {
   try {
-    const { teamLeadName, teamName, memberName } = req.body;
+    const { teamLeadId, teamName, teamMemberId } = req.body;
 
-    if (!teamLeadName || !teamName || !memberName) {
+    if (!teamLeadId || !teamName || !teamMemberId) {
       return res.status(400).json({ message: "All fields are required" });
     }
 
-    const teamLead = await TeamMember.findOne({
-      name: teamLeadName.trim(),
-      role: "team_Lead",
+    const teamLead = await Employee.findOne({
+      teamMemberId: teamLeadId.trim(),
+      role: "teamLead",
     });
     if (!teamLead) {
-      return res
-        .status(403)
-        .json({ message: "Only team leads can remove members" });
+      return res.status(403).json({ message: "Only team leads can remove members" });
     }
 
     const team = await Team.findOne({
@@ -162,25 +154,19 @@ exports.removeMember = async (req, res) => {
       teamLead: teamLead._id,
     });
     if (!team) {
-      return res
-        .status(404)
-        .json({ message: "Team not found or not owned by this team lead" });
+      return res.status(404).json({ message: "Team not found or not owned by this team lead" });
     }
 
-    const memberToRemove = await TeamMember.findOne({
-      name: memberName.trim(),
-      role: "team_Member",
+    const memberToRemove = await Employee.findOne({
+      teamMemberId: teamMemberId.trim(),
+      role: "teamMember",
     });
     if (!memberToRemove) {
-      return res
-        .status(400)
-        .json({ message: "Provided name is not a valid team_Member" });
+      return res.status(400).json({ message: "Provided ID is not a valid team member" });
     }
 
     if (!team.members.includes(memberToRemove._id)) {
-      return res
-        .status(400)
-        .json({ message: "Member is not part of this team" });
+      return res.status(400).json({ message: "Member is not part of this team" });
     }
 
     team.members = team.members.filter(
@@ -188,9 +174,7 @@ exports.removeMember = async (req, res) => {
     );
     await team.save();
 
-    res
-      .status(200)
-      .json({ message: "Member removed from team successfully", team });
+    res.status(200).json({ message: "Member removed from team successfully", team });
   } catch (err) {
     console.error("Error removing team member:", err);
     res.status(500).json({ message: "Server error" });
