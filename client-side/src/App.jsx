@@ -43,7 +43,7 @@ function App() {
             </ProtectedRoute>
           }
         />
-           <Route
+        <Route
           path="/AllTask"
           element={
             <ProtectedRoute>
@@ -53,7 +53,7 @@ function App() {
             </ProtectedRoute>
           }
         />
-        
+
         <Route
           path="/DashBoard"
           element={

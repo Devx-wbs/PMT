@@ -1,16 +1,22 @@
 import { useNavigate } from "react-router-dom";
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, } from "react";
 import { ChevronDown } from "lucide-react";
 import { api_url, image_url } from "@/api/Api";
+
 import { User, Settings, LogOut, Building2 } from "lucide-react";
 
 const sampleLogo = <img src="/vite.svg" alt="Logo" className="h-8 w-8" />;
 
 const TopBar = () => {
   const navigate = useNavigate();
-  const userDetails = JSON.parse(localStorage.getItem("user"));
-  console.log(userDetails?.companyLogo, "user_Details===>");
+    const [userDetails, setUserDetails] = useState({});
 
+  useEffect(() => {
+    const storedUser = localStorage.getItem("user");
+    if (storedUser) {
+      setUserDetails(JSON.parse(storedUser));
+    }
+  }, []);
   const [open, setOpen] = useState(false);
   const triggerRef = useRef(null);
   const dropdownRef = useRef(null);
@@ -42,7 +48,7 @@ const TopBar = () => {
   };
 
   return (
-    <header className="h-[76px] bg-white shadow flex items-center justify-between px-8 fixed left-64 right-0 top-0 z-10">
+    <header className="h-[76px] bg-white shadow flex items-center justify-end gap-2 px-8 fixed left-64 right-0 top-0 z-10">
       <div
         className="flex items-center gap-2 cursor-pointer"
         onClick={() => navigate("/DashBoard")}
@@ -50,6 +56,7 @@ const TopBar = () => {
         <Building2 className="text-blue-600" />
         <span className="font-bold text-lg">{userDetails?.companyName}</span>
       </div>
+
       <div className="flex items-center gap-4 relative">
         <button
           ref={triggerRef}
@@ -70,7 +77,7 @@ const TopBar = () => {
 
         <div
           ref={dropdownRef}
-          className={`absolute right-0 mt-2 w-56 bg-white p-3 rounded-lg shadow-lg border z-50 overflow-hidden transition-all duration-200 ${
+          className={`absolute right-0 mt-2 w-64 bg-white p-3 rounded-lg shadow-lg border z-50 overflow-hidden transition-all duration-200 ${
             open
               ? "opacity-100 scale-100 pointer-events-auto"
               : "opacity-0 scale-95 pointer-events-none"
