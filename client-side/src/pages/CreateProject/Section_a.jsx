@@ -58,7 +58,9 @@ const Section_a = () => {
       project_status: form.status,
       start_date: form.startDate,
       end_date: form.endDate,
+      teamLead: form.projectLead
     };
+    console.log(obj, "obj========<<<<<<");
 
 
     try {
@@ -67,6 +69,8 @@ const Section_a = () => {
         obj,
         token
       );
+      console.log(response,"response===>");
+      
       alert(response?.message);
       if (response.success) {
         toast.success("Project created successfully!");
@@ -156,7 +160,7 @@ const Section_a = () => {
             >
               <option value="">Select Project Lead</option>
               <option value="John Doe">John Doe</option>
-              <option value="Jane Smith">Jane Smith</option>
+              <option value="WS-006">WS-006</option>
               <option value="Mike Johnson">Mike Johnson</option>
             </select>
             {errors.projectLead && (
