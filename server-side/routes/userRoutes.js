@@ -2,6 +2,7 @@ const express = require("express");
 const router = express.Router();
 const userController = require("../controllers/userController");
 const authMiddleware = require("../middleware/authMiddleware");
+const EmployeeController = require("../controllers/EmployeeController");
 
 // Multer setup for company logo upload
 const multer = require("multer");
@@ -20,7 +21,13 @@ const upload = multer({ storage });
 router.post("/register", userController.register);
 router.post("/login", userController.login);
 router.post("/update", authMiddleware, userController.update);
-router.patch("/update", authMiddleware, upload.single("companyLogo"), userController.update);
+router.patch(
+  "/update",
+  authMiddleware,
+  upload.single("companyLogo"),
+  userController.update
+);
 router.get("/profile", authMiddleware, userController.getUserProfile);
+router.get("/activity/recent", EmployeeController.getRecentActivity);
 
 module.exports = router;

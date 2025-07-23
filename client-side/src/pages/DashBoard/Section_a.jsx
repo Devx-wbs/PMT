@@ -203,47 +203,16 @@ function Section_a() {
     fetchProjects();
   }, []);
 
-  // Fetch recent projects and tasks for activity
+  // Fetch recent activity from backend
   useEffect(() => {
     const fetchActivity = async () => {
       setActivityLoading(true);
       setActivityError("");
       const token = localStorage.getItem("token");
       try {
-        // Fetch latest projects
-        const projectsRes = await apiHandler.GetApi(
-          api_url.getAllProjects,
-          token
-        );
-        let projects = Array.isArray(projectsRes.projects)
-          ? projectsRes.projects
-          : [];
-        projects = projects.map((p) => ({
-          type: "Project",
-          title: p.project_name,
-          description: p.project_description,
-          date: p.createdAt || p.start_date || p.updatedAt,
-          status: p.project_status,
-        }));
-        // Fetch latest tasks
-        const tasksRes = await apiHandler.GetApi(
-          "http://localhost:8000/api/tasks/all",
-          token
-        );
-        let tasks = Array.isArray(tasksRes) ? tasksRes : [];
-        tasks = tasks.map((t) => ({
-          type: "Task",
-          title: t.title,
-          description: t.description,
-          date: t.createdAt || t.updatedAt,
-          status: t.status,
-        }));
-        // Merge, sort by date desc, and take top 6
-        const merged = [...projects, ...tasks]
-          .filter((item) => item.date)
-          .sort((a, b) => new Date(b.date) - new Date(a.date))
-          .slice(0, 6);
-        setActivity(merged);
+        const res = await apiHandler.GetApi(api_url.getRecentActivity, token);
+        let activities = Array.isArray(res.activities) ? res.activities : [];
+        setActivity(activities);
       } catch (err) {
         setActivityError("Failed to fetch recent activity");
       } finally {
@@ -334,25 +303,32 @@ function Section_a() {
                     className={`font-bold ${
                       item.type === "Project"
                         ? "text-blue-600"
-                        : "text-green-600"
+                        : item.type === "Task"
+                        ? "text-green-600"
+                        : item.type === "Employee"
+                        ? "text-purple-600"
+                        : "text-pink-600"
                     }`}
                   >
                     {item.type}
                   </span>
                   <div className="flex-1">
                     <span className="font-medium text-gray-800">
-                      {item.title}
+                      {item.name}
                     </span>
                     <span className="ml-2 text-xs text-gray-400">
-                      {item.status ? `(${item.status})` : ""}
+                      [{item.action}]
                     </span>
                     <div className="text-xs text-gray-500 mt-0.5">
                       {item.description}
                     </div>
+                    <div className="text-xs text-gray-400 mt-0.5">
+                      By: {item.performedBy || "Unknown"}
+                    </div>
                   </div>
                   <span className="text-xs text-gray-400 whitespace-nowrap">
-                    {item.date
-                      ? dayjs(item.date).format("MMM D, YYYY h:mm A")
+                    {item.timestamp
+                      ? dayjs(item.timestamp).format("MMM D, YYYY h:mm A")
                       : ""}
                   </span>
                 </li>

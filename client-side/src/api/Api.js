@@ -1,5 +1,5 @@
 export const BASE_URL = "http://localhost:8000/api";
-export const image_url="http://localhost:8000";
+export const image_url = "http://localhost:8000";
 export const api_url = {
   login: BASE_URL + "/login",
   register: BASE_URL + "/register",
@@ -9,7 +9,8 @@ export const api_url = {
   getAllEmployees: BASE_URL + "/employees/all",
   getAllProjects: BASE_URL + "/projects",
   deleteEmployee: BASE_URL + "/employees/deleteEmployee/:teamMemberId",
-  updateTeamMember:BASE_URL+"/employees/editEmployee/"
+  updateTeamMember: BASE_URL + "/employees/editEmployee/teamMemberId",
+  getRecentActivity: BASE_URL + "/activity/recent",
 };
 
 export const Methods = {

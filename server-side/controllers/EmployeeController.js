@@ -4,6 +4,7 @@ const jwt = require("jsonwebtoken");
 const crypto = require("crypto");
 const sendEmail = require("../utils/sendEmail");
 const User = require("../models/User"); // Required for companyName
+const Activity = require('../models/Activity');
 
 // API: Add new Employee
 exports.addEmployee = async (req, res) => {
@@ -59,6 +60,13 @@ exports.addEmployee = async (req, res) => {
     });
 
     await newEmployee.save();
+    await Activity.create({
+      type: 'Employee',
+      action: 'add',
+      name: newEmployee.name,
+      description: `Added new employee ${newEmployee.name}`,
+      performedBy: req.user?.firstName || req.user?.name || 'Unknown',
+    });
 
     await sendEmail(
       email,
@@ -205,6 +213,13 @@ exports.editEmployee = async (req, res) => {
     if (profileLogo) employee.profileLogo = profileLogo;
 
     await employee.save();
+    await Activity.create({
+      type: 'Employee',
+      action: 'edit',
+      name: employee.name,
+      description: `Edited employee ${employee.name}`,
+      performedBy: req.user?.firstName || req.user?.name || 'Unknown',
+    });
 
     res.status(200).json({ message: "Employee updated successfully", employee });
   } catch (error) {
@@ -226,6 +241,13 @@ exports.deleteEmployee = async (req, res) => {
     }
 
     await Employee.deleteOne({ teamMemberId });
+    await Activity.create({
+      type: 'Employee',
+      action: 'delete',
+      name: employee.name,
+      description: `Deleted employee ${employee.name}`,
+      performedBy: req.user?.firstName || req.user?.name || 'Unknown',
+    });
     res.status(200).json({ message: "Employee deleted successfully" });
   } catch (error) {
     console.error("Error deleting employee:", error);
@@ -274,5 +296,15 @@ exports.getAllTeamMembers = async (req, res) => {
   } catch (error) {
     console.error("Error fetching team members:", error);
     res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+// Get recent activity
+exports.getRecentActivity = async (req, res) => {
+  try {
+    const activities = await require('../models/Activity').find().sort({ timestamp: -1 }).limit(20);
+    res.status(200).json({ activities });
+  } catch (error) {
+    res.status(500).json({ message: 'Failed to fetch activity', error });
   }
 };
