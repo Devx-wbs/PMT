@@ -1,4 +1,4 @@
-import { Plus, Users } from "lucide-react";
+import { Plus, Users, Trash2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { api_url } from "@/api/Api";
@@ -9,9 +9,12 @@ const Section_a = () => {
   const [projects, setProjects] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [deleteId, setDeleteId] = useState(null);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
-  console.log(projects,"====projects");
-  
+  console.log(projects, "====projects");
+
   useEffect(() => {
     const fetchProjects = async () => {
       setLoading(true);
@@ -37,6 +40,34 @@ const Section_a = () => {
     navigate("/ProjectDetails", { state: { project } });
   };
 
+  const handleDeleteClick = (projectId) => {
+    setDeleteId(projectId);
+    setShowDeleteDialog(true);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!deleteId) return;
+    setDeleting(true);
+    const token = localStorage.getItem("token");
+    try {
+      const response = await apiHandler.DeleteApi(
+        `http://localhost:8080/api/projects/${deleteId}`,
+        token
+      );
+      if (response?.message === "Project deleted successfully") {
+        setProjects((prev) => prev.filter((p) => p.project_id !== deleteId));
+      } else {
+        alert(response?.message || "Failed to delete project");
+      }
+    } catch (err) {
+      alert("Failed to delete project");
+    } finally {
+      setDeleting(false);
+      setShowDeleteDialog(false);
+      setDeleteId(null);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gray-100 flex  justify-center px-4 py-10">
       <div className=" w-full max-w-6xl rounded-xl  p-8">
@@ -60,9 +91,8 @@ const Section_a = () => {
               <div
                 key={project._id || index}
                 onClick={() => handleCardClick(project)}
-                className="bg-white rounded-lg shadow-md p-5 border flex justify-between flex-col border-gray-200 cursor-pointer hover:shadow-lg transition"
+                className="bg-white rounded-lg shadow-md p-5 border flex justify-between flex-col border-gray-200 cursor-pointer hover:shadow-lg transition relative"
               >
-
                 <div className="flex justify-between items-start">
                   <div>
                     <h3 className="text-lg font-semibold text-gray-800">

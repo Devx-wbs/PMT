@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Calendar } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { api_url } from "@/api/Api";
@@ -19,9 +19,31 @@ const Section_a = () => {
   });
 
   const [errors, setErrors] = useState({});
+  const [teamLeads, setTeamLeads] = useState([]);
+  const [loadingLeads, setLoadingLeads] = useState(true);
 
   const startDateRef = useRef(null);
   const endDateRef = useRef(null);
+
+  useEffect(() => {
+    const fetchTeamLeads = async () => {
+      setLoadingLeads(true);
+      const token = localStorage.getItem("token");
+      try {
+        const res = await apiHandler.GetApi(api_url.getAllTeamLeads, token);
+        if (Array.isArray(res)) {
+          setTeamLeads(res);
+        } else {
+          setTeamLeads([]);
+        }
+      } catch {
+        setTeamLeads([]);
+      } finally {
+        setLoadingLeads(false);
+      }
+    };
+    fetchTeamLeads();
+  }, []);
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -58,10 +80,9 @@ const Section_a = () => {
       project_status: form.status,
       start_date: form.startDate,
       end_date: form.endDate,
-      teamLead: form.projectLead
+      project_lead: form.projectLead,
     };
     console.log(obj, "obj========<<<<<<");
-
 
     try {
       const response = await apiHandler.postApiWithToken(
@@ -69,8 +90,8 @@ const Section_a = () => {
         obj,
         token
       );
-      console.log(response,"response===>");
-      
+      console.log(response, "response===>");
+
       alert(response?.message);
       if (response.success) {
         toast.success("Project created successfully!");
@@ -159,9 +180,18 @@ const Section_a = () => {
               className="mt-1 block w-full rounded-md border border-gray-300 shadow-sm p-2 focus:ring-2 focus:ring-blue-500"
             >
               <option value="">Select Project Lead</option>
-              <option value="John Doe">John Doe</option>
-              <option value="WS-006">WS-006</option>
-              <option value="Mike Johnson">Mike Johnson</option>
+              {loadingLeads ? (
+                <option disabled>Loading...</option>
+              ) : teamLeads.length === 0 ? (
+                <option disabled>No team leads found</option>
+              ) : (
+                teamLeads.map((lead) => (
+                  <option key={lead.teamMemberId} value={lead.teamMemberId}>
+                    {lead.name.charAt(0).toUpperCase() + lead.name.slice(1)} (
+                    {lead.teamMemberId})
+                  </option>
+                ))
+              )}
             </select>
             {errors.projectLead && (
               <p className="text-red-500 text-sm mt-1">{errors.projectLead}</p>
