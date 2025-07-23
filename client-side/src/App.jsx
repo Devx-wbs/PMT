@@ -14,6 +14,7 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import CreateProject from "./pages/CreateProject";
 import EmpLogin from "./pages/Login/emp_login";
 import AllTask from "./pages/AllTask";
+import ProjectDetails from "./pages/ProjectDetails";
 
 function App() {
   return (
@@ -94,6 +95,18 @@ function App() {
             </ProtectedRoute>
           }
         />
+
+
+        <Route
+          path="/ProjectDetails"
+          element={
+            <ProtectedRoute>
+              <MainLayout>
+                <ProjectDetails />
+              </MainLayout>
+            </ProtectedRoute>
+          } />
+
         <Route
           path="/Profile"
           element={

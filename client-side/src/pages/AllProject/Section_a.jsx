@@ -10,6 +10,8 @@ const Section_a = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
+  console.log(projects,"====projects");
+  
   useEffect(() => {
     const fetchProjects = async () => {
       setLoading(true);
@@ -17,7 +19,6 @@ const Section_a = () => {
       const token = localStorage.getItem("token");
       try {
         const response = await apiHandler.GetApi(api_url.getAllProjects, token);
-        console.log(response, "---------->>>");
         if (Array.isArray(response.projects)) {
           setProjects(response.projects);
         } else {
@@ -31,6 +32,10 @@ const Section_a = () => {
     };
     fetchProjects();
   }, []);
+
+  const handleCardClick = (project) => {
+    navigate("/ProjectDetails", { state: { project } });
+  };
 
   return (
     <div className="min-h-screen bg-gray-100 flex  justify-center px-4 py-10">
@@ -54,24 +59,26 @@ const Section_a = () => {
             {projects.map((project, index) => (
               <div
                 key={project._id || index}
-                className="bg-white rounded-lg shadow-md p-5 border border-gray-200"
+                onClick={() => handleCardClick(project)}
+                className="bg-white rounded-lg shadow-md p-5 border flex justify-between flex-col border-gray-200 cursor-pointer hover:shadow-lg transition"
               >
+
                 <div className="flex justify-between items-start">
                   <div>
                     <h3 className="text-lg font-semibold text-gray-800">
                       {project.project_name || project.name}
                     </h3>
-                    <p className="text-sm text-gray-500">
+                    <p className="text-sm text-gray-500 w-full">
                       {project.project_description || project.description}
                     </p>
                   </div>
-                  <span className="bg-blue-500 text-white text-xs font-medium px-3   py-1 rounded-full">
+                  <span className="bg-blue-500 text-white text-xs font-medium px-3  py-1 rounded-full capitalize">
                     {project.project_status || project.status}
                   </span>
                 </div>
-                <div className="flex items-center mt-6 text-sm text-gray-600 gap-1">
+
+                <div className="flex items-center text-sm text-gray-600 gap-1 mt-5">
                   <Users size={16} />
-                  {/* If you have a members field, show it, else fallback to 0 */}
                   <span>{project.members || 0} members</span>
                 </div>
               </div>
