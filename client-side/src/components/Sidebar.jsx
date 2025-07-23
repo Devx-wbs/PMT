@@ -4,7 +4,7 @@ const navLinks = [
   { to: "/Dashboard", label: "Overview" },
   { to: "/TeamMember", label: "Members" },
   { to: "/MyTeam", label: "My Team" },
-    { to: "/AllTask", label: "All Task" },
+  { to: "/AllTask", label: "All Task" },
   { to: "/AllProject", label: "My Projects" },
   { to: "/WorkHistory", label: "Work History" },
   // Add more links as needed
@@ -21,11 +21,10 @@ const Sidebar = () => {
             <li key={link.to}>
               <Link
                 to={link.to}
-                className={`block px-4 py-2 rounded-md transition font-medium ${
-                  location.pathname === link.to
+                className={`block px-4 py-2 rounded-md transition font-medium ${location.pathname === link.to
                     ? "bg-blue-100 text-blue-700"
                     : "text-gray-700 hover:bg-gray-100"
-                }`}
+                  }`}
               >
                 {link.label}
               </Link>
