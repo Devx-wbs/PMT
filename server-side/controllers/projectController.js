@@ -115,59 +115,39 @@ exports.getAllProjects = async (req, res) => {
 exports.updateProject = async (req, res) => {
   try {
     if (req.user.role !== "owner") {
-      return res
-        .status(403)
-        .json({ message: "Only owner can update projects" });
+      return res.status(403).json({ message: "Only owner can update projects" });
     }
+
+    const { add_members = [], remove_members = [], ...otherUpdates } = req.body;
 
     const project = await Project.findOne({ project_id: req.params.projectId });
-    if (!project) {
-      return res.status(404).json({ message: "Project not found" });
-    }
+    if (!project) return res.status(404).json({ message: "Project not found" });
 
-    const {
-      project_name,
-      client_name,
-      project_description,
-      start_date,
-      end_date,
-      project_lead,
-      project_status,
-      team_members,
-    } = req.body;
-
-    // ✅ Validate and update project_lead (if provided)
-    if (project_lead) {
-      const lead = await Employee.findOne({ teamMemberId: project_lead, role: 'teamLead' });
-      if (!lead) {
-        return res.status(400).json({ message: "Invalid project lead" });
-      }
-      project.project_lead = lead.teamMemberId;
-    }
-
-    // ✅ Validate and update team_members (if provided)
-    if (team_members) {
-      const validMembers = await Employee.find({
-        teamMemberId: { $in: team_members },
-        role: 'teamMember',
+    // 🔍 Validate and add members
+    if (Array.isArray(add_members) && add_members.length > 0) {
+      const validAdditions = await Employee.find({
+        teamMemberId: { $in: add_members },
       });
 
-      if (validMembers.length !== team_members.length) {
-        return res
-          .status(400)
-          .json({ message: "One or more team members are invalid" });
+      if (validAdditions.length !== add_members.length) {
+        return res.status(400).json({ message: "One or more added members are invalid" });
       }
 
-      project.team_members = team_members;
+      // Prevent duplicates
+      project.team_members = [
+        ...new Set([...project.team_members, ...add_members]),
+      ];
     }
 
-    // ✅ Update other fields if provided
-    if (project_name) project.project_name = project_name;
-    if (client_name) project.client_name = client_name;
-    if (project_description) project.project_description = project_description;
-    if (start_date) project.start_date = start_date;
-    if (end_date) project.end_date = end_date;
-    if (project_status) project.project_status = project_status;
+    // ❌ Remove members
+    if (Array.isArray(remove_members) && remove_members.length > 0) {
+      project.team_members = project.team_members.filter(
+        (memberId) => !remove_members.includes(memberId)
+      );
+    }
+
+    // Update other fields if present (like project_name, description, etc.)
+    Object.assign(project, otherUpdates);
 
     await project.save();
 
@@ -175,17 +155,17 @@ exports.updateProject = async (req, res) => {
       type: "Project",
       action: "edit",
       name: project.project_name,
-      description: `Edited project ${project.project_name}`,
+      description: `Updated project ${project.project_name}`,
       performedBy: getPerformer(req.user),
     });
 
     res.status(200).json({ message: "Project updated", project });
-
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: "Server error" });
   }
 };
+
 
 
 
