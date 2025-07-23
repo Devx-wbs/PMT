@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import { useState, useRef, useEffect, } from "react";
+import { useState, useRef, useEffect } from "react";
 import { ChevronDown } from "lucide-react";
 import { api_url, image_url } from "@/api/Api";
 
@@ -9,7 +9,7 @@ const sampleLogo = <img src="/vite.svg" alt="Logo" className="h-8 w-8" />;
 
 const TopBar = () => {
   const navigate = useNavigate();
-    const [userDetails, setUserDetails] = useState({});
+  const [userDetails, setUserDetails] = useState({});
 
   useEffect(() => {
     const storedUser = localStorage.getItem("user");
@@ -50,11 +50,13 @@ const TopBar = () => {
   return (
     <header className="h-[76px] bg-white shadow flex items-center justify-end gap-2 px-8 fixed left-64 right-0 top-0 z-10">
       <div
-        className="flex items-center gap-2 cursor-pointer"
+        className="flex items-center gap-2 cursor-pointer bg-[#dbdfe9] px-4 py-2 rounded-full"
         onClick={() => navigate("/DashBoard")}
       >
         <Building2 className="text-blue-600" />
-        <span className="font-bold text-lg">{userDetails?.companyName}</span>
+        <span className="font-semibold text-sm">
+          {userDetails?.companyName}
+        </span>
       </div>
 
       <div className="flex items-center gap-4 relative">

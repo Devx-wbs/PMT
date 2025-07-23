@@ -10,6 +10,7 @@ import {
 } from "recharts";
 import { api_url } from "@/api/Api";
 import { apiHandler } from "@/api/ApiHandler";
+import dayjs from "dayjs";
 // Colors and math constants
 const colors = ["#4285F4", "#34A853", "#FBBC05", "#EA4335", "#9C27B0"];
 const RADIAN = Math.PI / 180;
@@ -27,45 +28,44 @@ const teamPerformanceData = [
   { name: "WordPress", value: 15 },
   { name: "BD", value: 10 },
 ];
-// :brain: Local quote generator
+// :brain: Local quote generator (employee motivation & focus)
+const motivationalQuotes = [
+  "Your dedication today builds our success tomorrow.",
+  "Teamwork divides the task and multiplies the success.",
+  "Stay focused, stay positive, and keep moving forward.",
+  "Every small effort counts towards big achievements.",
+  "Your work makes a difference—keep it up!",
+  "Collaboration is the key to innovation.",
+  "Growth happens when we step out of our comfort zone.",
+  "Success is the sum of small efforts repeated daily.",
+  "Motivation gets you started, habit keeps you going.",
+  "Together, we achieve more than we ever could alone.",
+  "Your focus determines your reality.",
+  "Great things never come from comfort zones.",
+  "Believe in yourself and all that you are capable of.",
+  "Progress, not perfection.",
+  "Your energy is contagious—spread positivity!",
+];
 const generateQuote = () => {
-  const subjects = [
-    "Success",
-    "Effort",
-    "Discipline",
-    "Passion",
-    "Teamwork",
-    "Courage",
-    "Consistency",
-    "Hard work",
-    "Focus",
-    "Learning",
+  return motivationalQuotes[
+    Math.floor(Math.random() * motivationalQuotes.length)
   ];
-  const actions = [
-    "drives",
-    "builds",
-    "unlocks",
-    "fuels",
-    "multiplies",
-    "creates",
-    "defines",
-    "empowers",
-    "transforms",
-    "shapes",
-  ];
-  const endings = [
-    "great results.",
-    "remarkable outcomes.",
-    "lasting change.",
-    "new opportunities.",
-    "strong foundations.",
-    "breakthroughs.",
-    "your future.",
-    "unstoppable momentum.",
-  ];
-  const random = (arr) => arr[Math.floor(Math.random() * arr.length)];
-  return `${random(subjects)} ${random(actions)} ${random(endings)}`;
 };
+
+// Quick Tips for productivity/teamwork
+const quickTips = [
+  "Take short breaks to boost productivity.",
+  "Communicate openly with your team.",
+  "Set daily goals and prioritize tasks.",
+  "Celebrate small wins together.",
+  "Share feedback constructively.",
+  "Stay organized with to-do lists.",
+  "Support your teammates when needed.",
+  "Keep learning and improving your skills.",
+  "Ask questions—curiosity drives growth.",
+  "Balance work and rest for long-term success.",
+];
+
 // :brain: Memoized chart block
 const ChartBlock = React.memo(({ title, data }) => {
   const renderLabel = useMemo(() => {
@@ -132,6 +132,55 @@ function Section_a() {
   const [projects, setProjects] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [tip, setTip] = useState(
+    quickTips[Math.floor(Math.random() * quickTips.length)]
+  );
+  const [userName, setUserName] = useState("there");
+
+  // Recent Activity State
+  const [activity, setActivity] = useState([]);
+  const [activityLoading, setActivityLoading] = useState(true);
+  const [activityError, setActivityError] = useState("");
+
+  // Fetch user name from localStorage (customize key as needed)
+  useEffect(() => {
+    const storedName = localStorage.getItem("userName");
+    if (storedName) setUserName(storedName);
+  }, []);
+
+  // Fetch quote from API, fallback to local
+  const fetchQuote = async () => {
+    try {
+      const res = await fetch(
+        "https://api.quotable.io/random?tags=motivational|inspirational"
+      );
+      if (!res.ok) throw new Error("API error");
+      const data = await res.json();
+      return data.content;
+    } catch {
+      return generateQuote();
+    }
+  };
+
+  useEffect(() => {
+    let isMounted = true;
+    const updateQuoteAndTip = async () => {
+      setFade(false);
+      setTimeout(async () => {
+        const newQuote = await fetchQuote();
+        if (isMounted) {
+          setQuote(newQuote);
+          setTip(quickTips[Math.floor(Math.random() * quickTips.length)]);
+          setFade(true);
+        }
+      }, 300);
+    };
+    const interval = setInterval(updateQuoteAndTip, 10000);
+    return () => {
+      isMounted = false;
+      clearInterval(interval);
+    };
+  }, []);
 
   useEffect(() => {
     const fetchProjects = async () => {
@@ -154,6 +203,56 @@ function Section_a() {
     fetchProjects();
   }, []);
 
+  // Fetch recent projects and tasks for activity
+  useEffect(() => {
+    const fetchActivity = async () => {
+      setActivityLoading(true);
+      setActivityError("");
+      const token = localStorage.getItem("token");
+      try {
+        // Fetch latest projects
+        const projectsRes = await apiHandler.GetApi(
+          api_url.getAllProjects,
+          token
+        );
+        let projects = Array.isArray(projectsRes.projects)
+          ? projectsRes.projects
+          : [];
+        projects = projects.map((p) => ({
+          type: "Project",
+          title: p.project_name,
+          description: p.project_description,
+          date: p.createdAt || p.start_date || p.updatedAt,
+          status: p.project_status,
+        }));
+        // Fetch latest tasks
+        const tasksRes = await apiHandler.GetApi(
+          "http://localhost:8000/api/tasks/all",
+          token
+        );
+        let tasks = Array.isArray(tasksRes) ? tasksRes : [];
+        tasks = tasks.map((t) => ({
+          type: "Task",
+          title: t.title,
+          description: t.description,
+          date: t.createdAt || t.updatedAt,
+          status: t.status,
+        }));
+        // Merge, sort by date desc, and take top 6
+        const merged = [...projects, ...tasks]
+          .filter((item) => item.date)
+          .sort((a, b) => new Date(b.date) - new Date(a.date))
+          .slice(0, 6);
+        setActivity(merged);
+      } catch (err) {
+        setActivityError("Failed to fetch recent activity");
+      } finally {
+        setActivityLoading(false);
+      }
+    };
+    fetchActivity();
+  }, []);
+
   // Calculate project stats
   const totalProjects = projects.length;
   const activeProjects = projects.filter(
@@ -173,88 +272,156 @@ function Section_a() {
     { name: "On Hold", value: onHoldProjects },
   ];
 
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setFade(false);
-      setTimeout(() => {
-        setQuote(generateQuote());
-        setFade(true);
-      }, 300);
-    }, 10000);
-    return () => clearInterval(interval);
-  }, []);
+  // Placeholder company stats (replace with real data if available)
+  const totalTeams = 4;
+  const totalEmployees = 24;
 
   return (
-    <div className="max-w-[1440px] bg-gray-100 m-auto p-6 min-h-screen">
-      <div className="font-bold py-3">
-        <h2 className="text-2xl">Dashboard</h2>
-        <p
-          className={`text-sm text-gray-600 py-5 font-medium italic mt-1 max-w-xl transition-opacity duration-500 ease-in-out ${
+    <div className="max-w-[1440px] bg-white m-auto p-6 min-h-screen">
+      {/* Greeting */}
+      <div className="font-bold py-3 flex flex-col md:flex-row md:items-center md:justify-between">
+        <div>
+          <h2 className="text-3xl md:text-4xl text-gray-800 drop-shadow-sm">
+            Welcome back, <span className="text-blue-700">Owner</span>!
+          </h2>
+          <p className="text-base text-gray-600 mt-1">
+            Here’s an overview of your company’s performance.
+          </p>
+        </div>
+        {/* Motivational Quote Card */}
+        <div
+          className={`transition-opacity duration-500 ease-in-out ${
             fade ? "opacity-100" : "opacity-0"
           }`}
         >
-          {quote}
-        </p>
+          <div className="bg-gray-50 shadow rounded px-6 py-4 mt-4 md:mt-0 border max-w-md mx-auto">
+            <span className="block text-gray-500 font-semibold mb-2">
+              For You & Your Team
+            </span>
+            <p className="text-gray-800 italic font-medium text-lg">
+              “{quote}”
+            </p>
+          </div>
+        </div>
       </div>
+      {/* Quick Tips Section */}
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between my-4 gap-4">
+        <div className="bg-gray-100 rounded shadow px-5 py-3 flex items-center w-full md:w-auto border">
+          <span className="text-gray-700 font-bold mr-3">💡 Quick Tip:</span>
+          <span className="text-gray-700 font-medium">{tip}</span>
+        </div>
+      </div>
+      {/* Recent Activity Section */}
+      <div className="mb-6">
+        <div className="bg-white border rounded shadow px-6 py-4">
+          <h3 className="text-lg font-semibold text-gray-800 mb-2">
+            Recent Activity
+          </h3>
+          {activityLoading ? (
+            <div className="text-gray-500">Loading activity...</div>
+          ) : activityError ? (
+            <div className="text-red-600">{activityError}</div>
+          ) : activity.length === 0 ? (
+            <div className="text-gray-500">No recent activity found.</div>
+          ) : (
+            <ul className="text-gray-600 text-sm space-y-2">
+              {activity.map((item, idx) => (
+                <li
+                  key={idx}
+                  className="flex items-start gap-3 border-b last:border-b-0 py-2"
+                >
+                  <span
+                    className={`font-bold ${
+                      item.type === "Project"
+                        ? "text-blue-600"
+                        : "text-green-600"
+                    }`}
+                  >
+                    {item.type}
+                  </span>
+                  <div className="flex-1">
+                    <span className="font-medium text-gray-800">
+                      {item.title}
+                    </span>
+                    <span className="ml-2 text-xs text-gray-400">
+                      {item.status ? `(${item.status})` : ""}
+                    </span>
+                    <div className="text-xs text-gray-500 mt-0.5">
+                      {item.description}
+                    </div>
+                  </div>
+                  <span className="text-xs text-gray-400 whitespace-nowrap">
+                    {item.date
+                      ? dayjs(item.date).format("MMM D, YYYY h:mm A")
+                      : ""}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      </div>
+      {/* Project Stats Cards */}
+      <div className="flex flex-wrap xl:gap-6 gap-6 2xl:justify-between justify-start">
+        <div className="flex border rounded bg-white py-3 px-3 w-full sm:w-[48%] md:w-[31%] xl:w-[18%] shadow-sm">
+          <div className="w-full">
+            <p className="font-semibold text-gray-700">Total Team</p>
+            <p className="font-bold text-2xl text-gray-800">4</p>
+            <p className="text-gray-400">24 employees</p>
+          </div>
+          <Users className="h-6 w-6 text-gray-400" />
+        </div>
+        <div className="flex border rounded bg-white py-3 px-3 w-full sm:w-[48%] md:w-[31%] xl:w-[18%] shadow-sm">
+          <div className="w-full">
+            <p className="font-semibold text-gray-700">Total Projects</p>
+            <p className="font-bold text-2xl text-gray-800">{totalProjects}</p>
+            <p className="text-gray-400">
+              All Projects (including completed, on-hold, and cancelled)
+            </p>
+          </div>
+          <Briefcase className="h-6 w-6 text-gray-400" />
+        </div>
+        <div className="flex border rounded bg-white py-3 px-3 w-full sm:w-[48%] md:w-[31%] xl:w-[18%] shadow-sm">
+          <div className="w-full">
+            <p className="font-semibold text-gray-700">Active Projects</p>
+            <p className="font-bold text-2xl text-gray-800">{activeProjects}</p>
+            <p className="text-gray-400">Currently being worked on</p>
+          </div>
+          <Clock className="h-6 w-6 text-gray-400" />
+        </div>
+        <div className="flex border rounded bg-white py-3 px-3 w-full sm:w-[48%] md:w-[31%] xl:w-[18%] shadow-sm">
+          <div className="w-full">
+            <p className="font-semibold text-gray-700">Completed Projects</p>
+            <p className="font-bold text-2xl text-gray-800">
+              {completedProjects}
+            </p>
+            <p className="text-gray-400">Finished Projects</p>
+          </div>
+          <CheckCircle className="h-6 w-6 text-gray-400" />
+        </div>
+        <div className="flex border rounded bg-white py-3 px-3 w-full sm:w-[48%] md:w-[31%] xl:w-[18%] shadow-sm">
+          <div className="w-full">
+            <p className="font-semibold text-gray-700">On Hold Projects</p>
+            <p className="font-bold text-2xl text-gray-800">{onHoldProjects}</p>
+            <p className="text-gray-400">Projects currently on hold</p>
+          </div>
+          <Clock className="h-6 w-6 text-gray-400" />
+        </div>
+      </div>
+      {/* Charts Section */}
+      <div className="flex justify-between my-6 flex-wrap gap-4">
+        <ChartBlock
+          title="Project Status Distribution"
+          data={projectStatusData}
+        />
+        <ChartBlock title="Team Performance" data={teamPerformanceData} />
+      </div>
+      {/* Error/Loading States */}
       {loading ? (
         <div className="text-center text-gray-500">Loading projects...</div>
       ) : error ? (
         <div className="text-center text-red-600">{error}</div>
-      ) : (
-        <>
-          <div className="flex flex-wrap xl:gap-6 gap-6 2xl:justify-between justify-start">
-            <div className="flex border border-gray-300 rounded bg-white py-3 px-3 w-full sm:w-[48%] md:w-[31%] xl:w-[18%]">
-              <div className="w-full">
-                <p className="font-semibold">Total Team</p>
-                <p className="font-bold">4</p>
-                <p className="text-gray-500">0 active members</p>
-              </div>
-              <Users className="h-5 w-5 text-muted-foreground" />
-            </div>
-            <div className="flex border border-gray-300 rounded bg-white py-3 px-3 w-full sm:w-[48%] md:w-[31%] xl:w-[18%]">
-              <div className="w-full">
-                <p className="font-semibold">Total Projects</p>
-                <p className="font-bold">{totalProjects}</p>
-                <p className="text-gray-500">
-                  All Projects (including completed, on-hold, and cancelled)
-                </p>
-              </div>
-              <Briefcase className="h-5 w-5 text-muted-foreground" />
-            </div>
-            <div className="flex border border-gray-300 rounded bg-white py-3 px-3 w-full sm:w-[48%] md:w-[31%] xl:w-[18%]">
-              <div className="w-full">
-                <p className="font-semibold">Active Projects</p>
-                <p className="font-bold">{activeProjects}</p>
-                <p className="text-gray-500">Currently being worked on</p>
-              </div>
-              <Clock className="h-5 w-5 text-muted-foreground" />
-            </div>
-            <div className="flex border border-gray-300 rounded bg-white py-3 px-3 w-full sm:w-[48%] md:w-[31%] xl:w-[18%]">
-              <div className="w-full">
-                <p className="font-semibold">Completed Projects</p>
-                <p className="font-bold">{completedProjects}</p>
-                <p className="text-gray-500">Finished Projects</p>
-              </div>
-              <CheckCircle className="h-5 w-5 text-muted-foreground" />
-            </div>
-            <div className="flex border border-gray-300 rounded bg-white py-3 px-3 w-full sm:w-[48%] md:w-[31%] xl:w-[18%]">
-              <div className="w-full">
-                <p className="font-semibold">On Hold Projects</p>
-                <p className="font-bold">{onHoldProjects}</p>
-                <p className="text-gray-500">Projects currently on hold</p>
-              </div>
-              <Clock className="h-5 w-5 text-muted-foreground" />
-            </div>
-          </div>
-          <div className="flex justify-between my-4 flex-wrap gap-4">
-            <ChartBlock
-              title="Project Status Distribution"
-              data={projectStatusData}
-            />
-            <ChartBlock title="Team Performance" data={teamPerformanceData} />
-          </div>
-        </>
-      )}
+      ) : null}
     </div>
   );
 }
