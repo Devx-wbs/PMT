@@ -243,3 +243,36 @@ exports.getAllEmployees = async (req, res) => {
     res.status(500).json({ message: "Internal server error" });
   }
 };
+
+// Get all employees with role: "teamLead"
+exports.getAllTeamLeads = async (req, res) => {
+  try {
+    const teamLeads = await Employee.find({ role: "teamLead" }).select("-password");
+    res.status(200).json(teamLeads);
+  } catch (error) {
+    console.error("Error fetching team leads:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+// Get all employees with role: "admin"
+exports.getAllAdmins = async (req, res) => {
+  try {
+    const admins = await Employee.find({ role: "admin" }).select("-password");
+    res.status(200).json(admins);
+  } catch (error) {
+    console.error("Error fetching admins:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+// Get all employees with role: "teamMember"
+exports.getAllTeamMembers = async (req, res) => {
+  try {
+    const teamMembers = await Employee.find({ role: "teamMember" }).select("-password");
+    res.status(200).json(teamMembers);
+  } catch (error) {
+    console.error("Error fetching team members:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};

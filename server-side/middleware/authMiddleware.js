@@ -42,9 +42,12 @@ const authMiddleware = async (req, res, next) => {
       _id: user._id,
       email: user.email,
       role: user.role,
-      teamMemberId: user.teamMemberId,
       type: userType,
     };
+
+    if (userType === "employee") {
+      req.user.teamMemberId = user.teamMemberId; // Only attach if exists
+      }
 
     next();
   } catch (err) {
