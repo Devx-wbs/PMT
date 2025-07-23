@@ -144,8 +144,30 @@ function Section_a() {
 
   // Fetch user name from localStorage (customize key as needed)
   useEffect(() => {
-    const storedName = localStorage.getItem("userName");
-    if (storedName) setUserName(storedName);
+    // Try to get the full user object
+    const storedUser = localStorage.getItem("user");
+    if (storedUser) {
+      try {
+        const user = JSON.parse(storedUser);
+        if (user.firstName || user.lastName) {
+          setUserName(
+            `${user.firstName || ""}${
+              user.lastName ? " " + user.lastName : ""
+            }`.trim()
+          );
+        } else if (user.name) {
+          setUserName(user.name);
+        } else if (user.email) {
+          setUserName(user.email);
+        } else {
+          setUserName("Owner");
+        }
+      } catch {
+        setUserName("Owner");
+      }
+    } else {
+      setUserName("Owner");
+    }
   }, []);
 
   // Fetch quote from API, fallback to local
@@ -282,7 +304,7 @@ function Section_a() {
       <div className="font-bold py-3 flex flex-col md:flex-row md:items-center md:justify-between">
         <div>
           <h2 className="text-3xl md:text-4xl text-gray-800 drop-shadow-sm">
-            Welcome back, <span className="text-blue-700">Owner</span>!
+            Welcome back, <span className="text-blue-700">{userName}</span>!
           </h2>
           <p className="text-base text-gray-600 mt-1">
             Here’s an overview of your company’s performance.
@@ -311,9 +333,57 @@ function Section_a() {
           <span className="text-gray-700 font-medium">{tip}</span>
         </div>
       </div>
+
+      {/* Project Stats Cards */}
+      <div className="flex flex-wrap xl:gap-6 gap-6 2xl:justify-between justify-start">
+        <div className="flex border rounded bg-white py-3 px-3 w-full sm:w-[48%] md:w-[31%] xl:w-[18%] shadow-sm">
+          <div className="w-full">
+            <p className="font-semibold text-gray-700">Total Team</p>
+            <p className="font-bold text-2xl text-gray-800">{totalTeams}</p>
+            <p className="text-gray-400">{totalEmployees} employees</p>
+          </div>
+          <Users className="h-6 w-6 text-gray-400" />
+        </div>
+        <div className="flex border rounded bg-white py-3 px-3 w-full sm:w-[48%] md:w-[31%] xl:w-[18%] shadow-sm">
+          <div className="w-full">
+            <p className="font-semibold text-gray-700">Total Projects</p>
+            <p className="font-bold text-2xl text-gray-800">{totalProjects}</p>
+            <p className="text-gray-400">
+              All Projects (including completed, on-hold, and cancelled)
+            </p>
+          </div>
+          <Briefcase className="h-6 w-6 text-gray-400" />
+        </div>
+        <div className="flex border rounded bg-white py-3 px-3 w-full sm:w-[48%] md:w-[31%] xl:w-[18%] shadow-sm">
+          <div className="w-full">
+            <p className="font-semibold text-gray-700">Active Projects</p>
+            <p className="font-bold text-2xl text-gray-800">{activeProjects}</p>
+            <p className="text-gray-400">Currently being worked on</p>
+          </div>
+          <Clock className="h-6 w-6 text-gray-400" />
+        </div>
+        <div className="flex border rounded bg-white py-3 px-3 w-full sm:w-[48%] md:w-[31%] xl:w-[18%] shadow-sm">
+          <div className="w-full">
+            <p className="font-semibold text-gray-700">Completed Projects</p>
+            <p className="font-bold text-2xl text-gray-800">
+              {completedProjects}
+            </p>
+            <p className="text-gray-400">Finished Projects</p>
+          </div>
+          <CheckCircle className="h-6 w-6 text-gray-400" />
+        </div>
+        <div className="flex border rounded bg-white py-3 px-3 w-full sm:w-[48%] md:w-[31%] xl:w-[18%] shadow-sm">
+          <div className="w-full">
+            <p className="font-semibold text-gray-700">On Hold Projects</p>
+            <p className="font-bold text-2xl text-gray-800">{onHoldProjects}</p>
+            <p className="text-gray-400">Projects currently on hold</p>
+          </div>
+          <Clock className="h-6 w-6 text-gray-400" />
+        </div>
+      </div>
       {/* Recent Activity Section */}
-      <div className="mb-6">
-        <div className="bg-white border rounded shadow px-6 py-4">
+      <div className="mt-6">
+        <div className="bg-white border rounded shadow px-6 py-4 overflow-y-scroll max-h-[300px]">
           <h3 className="text-lg font-semibold text-gray-800 mb-2">
             Recent Activity
           </h3>
@@ -366,53 +436,6 @@ function Section_a() {
               ))}
             </ul>
           )}
-        </div>
-      </div>
-      {/* Project Stats Cards */}
-      <div className="flex flex-wrap xl:gap-6 gap-6 2xl:justify-between justify-start">
-        <div className="flex border rounded bg-white py-3 px-3 w-full sm:w-[48%] md:w-[31%] xl:w-[18%] shadow-sm">
-          <div className="w-full">
-            <p className="font-semibold text-gray-700">Total Team</p>
-            <p className="font-bold text-2xl text-gray-800">{totalTeams}</p>
-            <p className="text-gray-400">{totalEmployees} employees</p>
-          </div>
-          <Users className="h-6 w-6 text-gray-400" />
-        </div>
-        <div className="flex border rounded bg-white py-3 px-3 w-full sm:w-[48%] md:w-[31%] xl:w-[18%] shadow-sm">
-          <div className="w-full">
-            <p className="font-semibold text-gray-700">Total Projects</p>
-            <p className="font-bold text-2xl text-gray-800">{totalProjects}</p>
-            <p className="text-gray-400">
-              All Projects (including completed, on-hold, and cancelled)
-            </p>
-          </div>
-          <Briefcase className="h-6 w-6 text-gray-400" />
-        </div>
-        <div className="flex border rounded bg-white py-3 px-3 w-full sm:w-[48%] md:w-[31%] xl:w-[18%] shadow-sm">
-          <div className="w-full">
-            <p className="font-semibold text-gray-700">Active Projects</p>
-            <p className="font-bold text-2xl text-gray-800">{activeProjects}</p>
-            <p className="text-gray-400">Currently being worked on</p>
-          </div>
-          <Clock className="h-6 w-6 text-gray-400" />
-        </div>
-        <div className="flex border rounded bg-white py-3 px-3 w-full sm:w-[48%] md:w-[31%] xl:w-[18%] shadow-sm">
-          <div className="w-full">
-            <p className="font-semibold text-gray-700">Completed Projects</p>
-            <p className="font-bold text-2xl text-gray-800">
-              {completedProjects}
-            </p>
-            <p className="text-gray-400">Finished Projects</p>
-          </div>
-          <CheckCircle className="h-6 w-6 text-gray-400" />
-        </div>
-        <div className="flex border rounded bg-white py-3 px-3 w-full sm:w-[48%] md:w-[31%] xl:w-[18%] shadow-sm">
-          <div className="w-full">
-            <p className="font-semibold text-gray-700">On Hold Projects</p>
-            <p className="font-bold text-2xl text-gray-800">{onHoldProjects}</p>
-            <p className="text-gray-400">Projects currently on hold</p>
-          </div>
-          <Clock className="h-6 w-6 text-gray-400" />
         </div>
       </div>
       {/* Charts Section */}

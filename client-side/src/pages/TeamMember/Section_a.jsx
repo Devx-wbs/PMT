@@ -1,4 +1,5 @@
 import { Pencil, Trash2, Mail, Clock, Activity, Users } from "lucide-react";
+import { Phone, IdCard, MapPin } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -16,7 +17,6 @@ import { Label } from "@/components/ui/label";
 import { useEffect, useState } from "react";
 import { api_url } from "@/api/Api";
 import { apiHandler } from "@/api/ApiHandler";
-import { MapPin } from "lucide-react";
 
 const Section_a = () => {
   const [teamMembers, setTeamMembers] = useState([]);
@@ -352,21 +352,27 @@ const Section_a = () => {
                   <p className="text-sm text-gray-500">{member.role}</p>
                 </div>
               </div>
-              <div className="flex items-center text-sm text-gray-600">
-                <Mail className="w-4 h-4 text-gray-600" />
-                <span className="ml-2">{member.email}</span>
-              </div>
-              <div className="flex items-center text-sm text-gray-600">
-                <Clock className="w-4 h-4 text-gray-600" />
-                <span className="ml-2">{member.designation || "N/A"}</span>
-              </div>
-              <div className="flex items-center text-sm text-gray-600">
-                <MapPin className="w-4 h-4 " />
-                {member.location && (
-                  <p className="text-xs text-gray-600 capitalize ml-2">
-                    {member.location}
-                  </p>
-                )}
+              <div className="flex flex-col gap-1 mt-2 text-sm text-gray-600">
+                <div className="flex items-center">
+                  <Mail className="w-4 h-4 text-gray-600" />
+                  <span className="ml-2">{member.email}</span>
+                </div>
+                <div className="flex items-center">
+                  <Phone className="w-4 h-4 text-gray-600" />
+                  <span className="ml-2">{member.phoneNo}</span>
+                </div>
+                <div className="flex items-center">
+                  <IdCard className="w-4 h-4 text-gray-600" />
+                  <span className="ml-2">Emp ID: {member.teamMemberId}</span>
+                </div>
+                <div className="flex items-center">
+                  <Activity className="w-4 h-4 text-gray-600" />
+                  <span className="ml-2">{member.designation || "N/A"}</span>
+                </div>
+                <div className="flex items-center">
+                  <MapPin className="w-4 h-4 text-gray-600" />
+                  <span className="ml-2">{member.location || "N/A"}</span>
+                </div>
               </div>
             </div>
           ))}
