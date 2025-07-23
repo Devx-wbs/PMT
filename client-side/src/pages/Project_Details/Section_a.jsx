@@ -25,7 +25,7 @@ const Section_a = () => {
     const token = localStorage.getItem("token");
     try {
       const response = await apiHandler.DeleteApi(
-        `http://localhost:8080/api/projects/${project.project_id}`,
+        api_url.deleteProject.replace(":projectId", project.project_id),
         token
       );
       if (response?.message === "Project deleted successfully") {
