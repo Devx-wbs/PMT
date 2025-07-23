@@ -19,7 +19,8 @@ exports.createProject = async (req, res) => {
       project_description,
       start_date,
       end_date,
-      project_lead, // teamMemberId of the project lead
+      project_lead,        // teamMemberId of the project lead
+      team_members = [],   // Array of teamMemberIds
       project_status,
     } = req.body;
 
@@ -27,20 +28,23 @@ exports.createProject = async (req, res) => {
     const count = await Project.countDocuments();
     const generatedProjectId = `Pr-${count + 1}`;
 
-    console.log("🔍 Looking for project lead:", project_lead);
-
-    const employees = await Employee.find();
-    console.log(
-      "🧾 All employees teamMemberIds:",
-      employees.map((e) => e.teamMemberId)
-    );
-
-    // Vaidate Team Lead
+    // Validate project lead
     const lead = await Employee.findOne({ teamMemberId: project_lead });
-    if (!lead) {
-      return res.status(404).json({ message: "Team Lead not found" });
+    if (!lead || lead.role !== 'teamLead') {
+      return res.status(404).json({ message: "Team Lead not found or invalid" });
     }
 
+    // Validate team members
+    const validMembers = await Employee.find({
+      teamMemberId: { $in: team_members },
+      role: 'teamMember'
+    });
+
+    if (validMembers.length !== team_members.length) {
+      return res.status(400).json({ message: "One or more team members are invalid" });
+    }
+
+    // Create project
     const newProject = new Project({
       project_id: generatedProjectId,
       project_name,
@@ -49,10 +53,13 @@ exports.createProject = async (req, res) => {
       start_date,
       end_date,
       project_lead: lead.teamMemberId,
+      team_members: validMembers.map(m => m.teamMemberId),
       project_status,
     });
 
     await newProject.save();
+
+    // Create activity log
     await Activity.create({
       type: "Project",
       action: "add",
@@ -60,12 +67,15 @@ exports.createProject = async (req, res) => {
       description: `Created project ${newProject.project_name}`,
       performedBy: getPerformer(req.user),
     });
+
     res.status(201).json({ message: "Project created", project: newProject });
+
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: "Server error" });
   }
 };
+
 
 exports.getProjectById = async (req, res) => {
   try {
@@ -106,10 +116,56 @@ exports.updateProject = async (req, res) => {
     }
 
     const project = await Project.findOne({ project_id: req.params.projectId });
-    if (!project) return res.status(404).json({ message: "Project not found" });
+    if (!project) {
+      return res.status(404).json({ message: "Project not found" });
+    }
 
-    Object.assign(project, req.body);
+    const {
+      project_name,
+      client_name,
+      project_description,
+      start_date,
+      end_date,
+      project_lead,
+      project_status,
+      team_members,
+    } = req.body;
+
+    // ✅ Validate and update project_lead (if provided)
+    if (project_lead) {
+      const lead = await Employee.findOne({ teamMemberId: project_lead, role: 'teamLead' });
+      if (!lead) {
+        return res.status(400).json({ message: "Invalid project lead" });
+      }
+      project.project_lead = lead.teamMemberId;
+    }
+
+    // ✅ Validate and update team_members (if provided)
+    if (team_members) {
+      const validMembers = await Employee.find({
+        teamMemberId: { $in: team_members },
+        role: 'teamMember',
+      });
+
+      if (validMembers.length !== team_members.length) {
+        return res
+          .status(400)
+          .json({ message: "One or more team members are invalid" });
+      }
+
+      project.team_members = team_members;
+    }
+
+    // ✅ Update other fields if provided
+    if (project_name) project.project_name = project_name;
+    if (client_name) project.client_name = client_name;
+    if (project_description) project.project_description = project_description;
+    if (start_date) project.start_date = start_date;
+    if (end_date) project.end_date = end_date;
+    if (project_status) project.project_status = project_status;
+
     await project.save();
+
     await Activity.create({
       type: "Project",
       action: "edit",
@@ -119,11 +175,14 @@ exports.updateProject = async (req, res) => {
     });
 
     res.status(200).json({ message: "Project updated", project });
+
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: "Server error" });
   }
 };
+
+
 
 exports.deleteProject = async (req, res) => {
   try {
