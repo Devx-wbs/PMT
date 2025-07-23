@@ -1,4 +1,5 @@
 const Project = require('../models/Project');
+const Employee = require('../models/Employee');
 
 exports.createProject = async (req, res) => {
   try {
@@ -12,12 +13,24 @@ exports.createProject = async (req, res) => {
       project_description,
       start_date,
       end_date,
+      project_lead, // teamMemberId of the project lead
       project_status
     } = req.body;
-
+    
     // Count existing projects to generate next ID
     const count = await Project.countDocuments();
     const generatedProjectId = `Pr-${count + 1}`;
+
+    console.log("🔍 Looking for project lead:", project_lead);
+
+    const employees = await Employee.find();
+    console.log("🧾 All employees teamMemberIds:", employees.map(e => e.teamMemberId));
+
+   // Vaidate Team Lead
+    const lead = await Employee.findOne({ teamMemberId: project_lead });
+    if (!lead) {
+      return res.status(404).json({ message: 'Team Lead not found' });
+    }
 
     const newProject = new Project({
       project_id: generatedProjectId,
@@ -26,6 +39,7 @@ exports.createProject = async (req, res) => {
       project_description,
       start_date,
       end_date,
+      project_lead: lead.teamMemberId,
       project_status,
     });
 

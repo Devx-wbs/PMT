@@ -12,6 +12,10 @@ const projectSchema = new mongoose.Schema({
     enum: ['ongoing', 'completed', 'on hold'],
     default: 'ongoing'
   },
+  project_lead: {
+    type: String, // Storing teamMemberId instead of ObjectId
+    required: true
+  }
 }, {
   timestamps: true
 });
