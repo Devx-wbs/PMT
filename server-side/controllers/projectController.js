@@ -28,6 +28,11 @@ exports.createProject = async (req, res) => {
     const count = await Project.countDocuments();
     const generatedProjectId = `Pr-${count + 1}`;
 
+    // Validate team_members presence
+    if (!Array.isArray(team_members) || team_members.length === 0) {
+      return res.status(400).json({ message: "Team members are required" });
+    }
+
     // Validate project lead
     const lead = await Employee.findOne({ teamMemberId: project_lead });
     if (!lead || lead.role !== 'teamLead') {

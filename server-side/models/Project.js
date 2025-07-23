@@ -18,7 +18,7 @@ const projectSchema = new mongoose.Schema({
   },
     team_members: [{
     type: String, // Storing teamMemberId for each member
-    required: true
+    required: true,
   }]
 }, {
   timestamps: true
