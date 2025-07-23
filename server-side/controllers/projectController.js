@@ -35,7 +35,6 @@ exports.createProject = async (req, res) => {
       employees.map((e) => e.teamMemberId)
     );
 
-    // Vaidate Team Lead
     const lead = await Employee.findOne({ teamMemberId: project_lead });
     if (!lead) {
       return res.status(404).json({ message: "Team Lead not found" });

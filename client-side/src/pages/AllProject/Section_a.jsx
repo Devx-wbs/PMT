@@ -13,7 +13,7 @@ const Section_a = () => {
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [deleting, setDeleting] = useState(false);
 
-  console.log(projects, "====projects");
+  // console.log(projects, "====projects");
 
   useEffect(() => {
     const fetchProjects = async () => {

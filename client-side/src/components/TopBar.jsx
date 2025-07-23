@@ -12,11 +12,9 @@ const TopBar = () => {
   const [userDetails, setUserDetails] = useState({});
 
   useEffect(() => {
-    const storedUser = localStorage.getItem("user");
-    if (storedUser) {
-      setUserDetails(JSON.parse(storedUser));
-    }
+    fetchUserData()
   }, []);
+
   const [open, setOpen] = useState(false);
   const triggerRef = useRef(null);
   const dropdownRef = useRef(null);
@@ -47,6 +45,30 @@ const TopBar = () => {
     navigate("/profile");
   };
 
+
+const fetchUserData = async () => {
+  const token = localStorage.getItem("token"); // ✅ Get token
+
+  const response = await fetch("http://localhost:8000/api/profile", {
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`, // ✅ Pass token correctly
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error("Failed to fetch data"); // ✅ Handles non-200 responses
+  }
+
+  const data = await response.json(); // ✅ Parse response
+  setUserDetails(data); // ✅ Save to state
+  console.log(data,"data=====>");
+  
+};
+
+
+
   return (
     <header className="h-[76px] bg-white shadow flex items-center justify-end gap-2 px-8 fixed left-64 right-0 top-0 z-10">
       <div
@@ -71,19 +93,17 @@ const TopBar = () => {
             className="h-8 w-8 rounded-full border object-cover"
           />
           <ChevronDown
-            className={`w-4 h-4 transition-transform ${
-              open ? "rotate-180" : ""
-            }`}
+            className={`w-4 h-4 transition-transform ${open ? "rotate-180" : ""
+              }`}
           />
         </button>
 
         <div
           ref={dropdownRef}
-          className={`absolute right-0 mt-2 w-64 bg-white p-3 rounded-lg shadow-lg border z-50 overflow-hidden transition-all duration-200 ${
-            open
-              ? "opacity-100 scale-100 pointer-events-auto"
-              : "opacity-0 scale-95 pointer-events-none"
-          }`}
+          className={`absolute right-0 mt-2 w-64 bg-white p-3 rounded-lg shadow-lg border z-50 overflow-hidden transition-all duration-200 ${open
+            ? "opacity-100 scale-100 pointer-events-auto"
+            : "opacity-0 scale-95 pointer-events-none"
+            }`}
           style={{ top: "48px" }}
         >
           <div className="mb-3">
