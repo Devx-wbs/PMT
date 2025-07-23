@@ -12,7 +12,7 @@ export const api_url = {
   updateTeamMember: BASE_URL + "/employees/editEmployee/:teamMemberId",
   getRecentActivity: BASE_URL + "/activity/recent",
   getAllTeamLeads: BASE_URL + "/employees/team-leads",
-  deleteProject: BASE_URL + "/projects/deleteProject/:projectId",
+  deleteProject: BASE_URL + "/projects/:projectId",
 };
 
 export const Methods = {
