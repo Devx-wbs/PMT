@@ -202,3 +202,18 @@ exports.getAllTeamMembers = async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 };
+
+// Get All Teams
+exports.getAllTeams = async (req, res) => {
+  try {
+    const teams = await Team.find()
+      .populate("teamLead", "name email teamMemberId") // Show basic info of teamLead
+      .populate("members", "name email teamMemberId")   // Show basic info of members
+      .populate("createdBy", "firstName lastName email"); // Show who created it (owner)
+
+    res.status(200).json({ teams });
+  } catch (err) {
+    console.error("Error fetching teams:", err);
+    res.status(500).json({ message: "Server error" });
+  }
+};

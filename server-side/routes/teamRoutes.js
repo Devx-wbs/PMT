@@ -11,6 +11,8 @@ router.post("/addMember", authMiddleware, teamController.addMember);
 router.post("/removeMember", authMiddleware, teamController.removeMember);
 router.get("/team-leads", authMiddleware, teamController.getAllTeamLeads);
 router.get("/team-members", authMiddleware, teamController.getAllTeamMembers);
+router.get("/all-teams", authMiddleware, teamController.getAllTeams);
+
 // no delete one
 
 module.exports = router;
