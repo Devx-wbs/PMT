@@ -222,3 +222,27 @@ exports.update = async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 };
+
+// To get user profile
+exports.getUserProfile = async (req, res) => {
+  try {
+    const userId = req.user._id;
+
+    // First check in User collection
+    const user = await User.findById(userId).select("-password");
+    if (user) {
+      return res.json({ type: "user", user });
+    }
+
+    // Then check in Employee collection
+    const employee = await Employee.findById(userId).select("-password");
+    if (employee) {
+      return res.json({ type: "employee", employee });
+    }
+
+    return res.status(404).json({ message: "User not found" });
+  } catch (err) {
+    console.error("Get profile error:", err);
+    res.status(500).json({ message: "Server error" });
+  }
+};

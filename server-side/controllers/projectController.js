@@ -1,4 +1,4 @@
-                        const Project = require('../models/Project');
+const Project = require('../models/Project');
 
 exports.createProject = async (req, res) => {
   try {
@@ -27,7 +27,6 @@ exports.createProject = async (req, res) => {
       start_date,
       end_date,
       project_status,
-      created_by: req.user.id
     });
 
     await newProject.save();

@@ -12,11 +12,6 @@ const projectSchema = new mongoose.Schema({
     enum: ['ongoing', 'completed', 'on hold'],
     default: 'ongoing'
   },
-  created_by: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'User',
-    required: true
-  }
 }, {
   timestamps: true
 });
