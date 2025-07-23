@@ -21,5 +21,6 @@ router.post("/register", userController.register);
 router.post("/login", userController.login);
 router.post("/update", authMiddleware, userController.update);
 router.patch("/update", authMiddleware, upload.single("companyLogo"), userController.update);
+router.get("/profile", authMiddleware, userController.getUserProfile);
 
 module.exports = router;
