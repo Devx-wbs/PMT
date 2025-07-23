@@ -15,7 +15,11 @@ const projectSchema = new mongoose.Schema({
   project_lead: {
     type: String, // Storing teamMemberId instead of ObjectId
     required: true
-  }
+  },
+    team_members: [{
+    type: String, // Storing teamMemberId for each member
+    required: true,
+  }]
 }, {
   timestamps: true
 });
