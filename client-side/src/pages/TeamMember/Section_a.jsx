@@ -115,34 +115,30 @@ const Section_a = () => {
   };
 
 
-const handleEditMember = async (e) => {
-  e.preventDefault();
+  const handleEditMember = async (e) => {
+    e.preventDefault();
 
-  const token = localStorage.getItem("token");
+    const token = localStorage.getItem("token");
 
-  // Replace the :teamMemberId placeholder
-  const endpoint = api_url.updateTeamMember.replace(":teamMemberId", editForm.teamMemberId);
-
-  try {
-    const response = await apiHandler.PutApi(endpoint, editForm, token);
-
-    console.log("response ===>", response);
-
-    if (response?.message === "Employee updated successfully") {
-      setTeamMembers((prev) =>
-        prev.map((emp) =>
-          emp.teamMemberId === editForm.teamMemberId ? { ...emp, ...editForm } : emp
-        )
-      );
-      setEditOpen(false); // Close the dialog
-    } else {
-      alert(response?.message || "Failed to update member");
+    try {
+      const url = `${api_url.updateTeamMember}${editForm.teamMemberId}`;
+      const response = await apiHandler.PutApi(url, editForm, token);
+      if (response?.message === "Employee updated successfully") {
+        setTeamMembers((prev) =>
+          prev.map((emp) =>
+            emp.teamMemberId === editForm.teamMemberId ? { ...emp, ...editForm } : emp
+          )
+        );
+        setEditOpen(false);
+      } else {
+        alert(response?.message || "Failed to update member");
+      }
+    } catch (err) {
+      console.error("API Error:", err);
+      alert("Failed to update member");
     }
-  } catch (err) {
-    console.error("API Error:", err);
-    alert("Failed to update member");
-  }
-};
+  };
+
 
 
 
@@ -188,8 +184,8 @@ const handleEditMember = async (e) => {
                 >
                   <option value="">Select</option>
                   <option value="admin">Admin</option>
-                  <option value="team_lead">Team Lead</option>
-                  <option value="team_member">Team Member</option>
+                  <option value="teamLead">Team Lead</option>
+                  <option value="teamMember">Team Member</option>
                 </select>
               </div>
               {error && <div className="text-red-600 text-sm">{error}</div>}
@@ -247,9 +243,11 @@ const handleEditMember = async (e) => {
                               onChange={(e) =>
                                 setEditForm((prev) => ({ ...prev, [e.target.name]: e.target.value }))
                               }
+                              readOnly={field === "name" || field === "email"} // ✅ Make these fields read-only
                             />
                           </div>
                         ))}
+
                         <div className="grid gap-2">
                           <Label htmlFor="role">Role</Label>
                           <select
@@ -263,8 +261,8 @@ const handleEditMember = async (e) => {
                           >
                             <option value="">Select</option>
                             <option value="admin">Admin</option>
-                            <option value="team_lead">Team Lead</option>
-                            <option value="team_member">Team Member</option>
+                            <option value="teamLead">Team Lead</option>
+                            <option value="teamMember">Team Member</option>
                           </select>
                         </div>
                         <DialogFooter>
