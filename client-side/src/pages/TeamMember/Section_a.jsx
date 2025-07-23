@@ -1,11 +1,4 @@
-import {
-  Pencil,
-  Trash2,
-  Mail,
-  Clock,
-  Activity,
-  Users,
-} from "lucide-react";
+import { Pencil, Trash2, Mail, Clock, Activity, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -48,7 +41,10 @@ const Section_a = () => {
       setError("");
       const token = localStorage.getItem("token");
       try {
-        const response = await apiHandler.GetApi(api_url.getAllEmployees, token);
+        const response = await apiHandler.GetApi(
+          api_url.getAllEmployees,
+          token
+        );
         if (Array.isArray(response)) {
           setTeamMembers(response);
         } else {
@@ -75,7 +71,11 @@ const Section_a = () => {
     const token = localStorage.getItem("token");
     const payload = { ...addForm };
     try {
-      const response = await apiHandler.PostApi(api_url.addEmployee, payload, token);
+      const response = await apiHandler.PostApi(
+        api_url.addEmployee,
+        payload,
+        token
+      );
       if (response && response.employee) {
         setTeamMembers((prev) => [...prev, response.employee]);
         setAddForm({
@@ -105,7 +105,9 @@ const Section_a = () => {
         token
       );
       if (response?.message === "Employee deleted successfully") {
-        setTeamMembers((prev) => prev.filter((emp) => emp.teamMemberId !== teamMemberId));
+        setTeamMembers((prev) =>
+          prev.filter((emp) => emp.teamMemberId !== teamMemberId)
+        );
       } else {
         alert(response?.message || "Failed to delete employee");
       }
@@ -114,19 +116,23 @@ const Section_a = () => {
     }
   };
 
-
   const handleEditMember = async (e) => {
     e.preventDefault();
 
     const token = localStorage.getItem("token");
 
     try {
-      const url = `${api_url.updateTeamMember}${editForm.teamMemberId}`;
+      const url = api_url.updateTeamMember.replace(
+        ":teamMemberId",
+        editForm.teamMemberId
+      );
       const response = await apiHandler.PutApi(url, editForm, token);
       if (response?.message === "Employee updated successfully") {
         setTeamMembers((prev) =>
           prev.map((emp) =>
-            emp.teamMemberId === editForm.teamMemberId ? { ...emp, ...editForm } : emp
+            emp.teamMemberId === editForm.teamMemberId
+              ? { ...emp, ...editForm }
+              : emp
           )
         );
         setEditOpen(false);
@@ -139,15 +145,16 @@ const Section_a = () => {
     }
   };
 
-
-
-
   return (
     <div className="p-4 sm:p-6 md:p-10">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 gap-3">
         <div>
-          <h2 className="text-2xl sm:text-3xl font-bold text-blue-900">Team Members</h2>
-          <p className="text-gray-500 text-sm">View and manage your team members</p>
+          <h2 className="text-2xl sm:text-3xl font-bold text-blue-900">
+            Team Members
+          </h2>
+          <p className="text-gray-500 text-sm">
+            View and manage your team members
+          </p>
         </div>
 
         <Dialog open={open} onOpenChange={setOpen}>
@@ -161,18 +168,22 @@ const Section_a = () => {
               <DialogTitle>Add Team Member</DialogTitle>
             </DialogHeader>
             <form onSubmit={handleAddMember} className="grid gap-4">
-              {["name", "email", "designation", "phoneNo", "location"].map((field) => (
-                <div className="grid gap-2" key={field}>
-                  <Label htmlFor={field}>{field.charAt(0).toUpperCase() + field.slice(1)}</Label>
-                  <Input
-                    id={field}
-                    name={field}
-                    placeholder={`Enter ${field}`}
-                    value={addForm[field]}
-                    onChange={handleAddFormChange}
-                  />
-                </div>
-              ))}
+              {["name", "email", "designation", "phoneNo", "location"].map(
+                (field) => (
+                  <div className="grid gap-2" key={field}>
+                    <Label htmlFor={field}>
+                      {field.charAt(0).toUpperCase() + field.slice(1)}
+                    </Label>
+                    <Input
+                      id={field}
+                      name={field}
+                      placeholder={`Enter ${field}`}
+                      value={addForm[field]}
+                      onChange={handleAddFormChange}
+                    />
+                  </div>
+                )
+              )}
               <div className="grid gap-2">
                 <Label htmlFor="role">Role</Label>
                 <select
@@ -191,7 +202,9 @@ const Section_a = () => {
               {error && <div className="text-red-600 text-sm">{error}</div>}
               <DialogFooter>
                 <DialogClose asChild>
-                  <Button variant="outline" type="button">Cancel</Button>
+                  <Button variant="outline" type="button">
+                    Cancel
+                  </Button>
                 </DialogClose>
                 <Button type="submit" disabled={loading}>
                   {loading ? "Adding..." : "Save changes"}
@@ -214,7 +227,6 @@ const Section_a = () => {
               className="bg-white shadow-md rounded-xl p-5 flex flex-col gap-3 relative"
             >
               <div className="absolute right-4 top-4 flex gap-3">
-
                 <Dialog open={editOpen} onOpenChange={setEditOpen}>
                   <DialogTrigger asChild>
                     <Pencil
@@ -231,17 +243,31 @@ const Section_a = () => {
                       <DialogTitle>Edit Team Member</DialogTitle>
                     </DialogHeader>
                     {editForm && (
-                      <form onSubmit={(e) => handleEditMember(e)} className="grid gap-4">
-                        {["name", "email", "designation", "phoneNo", "location"].map((field) => (
+                      <form
+                        onSubmit={(e) => handleEditMember(e)}
+                        className="grid gap-4"
+                      >
+                        {[
+                          "name",
+                          "email",
+                          "designation",
+                          "phoneNo",
+                          "location",
+                        ].map((field) => (
                           <div className="grid gap-2" key={field}>
-                            <Label htmlFor={field}>{field.charAt(0).toUpperCase() + field.slice(1)}</Label>
+                            <Label htmlFor={field}>
+                              {field.charAt(0).toUpperCase() + field.slice(1)}
+                            </Label>
                             <Input
                               id={field}
                               name={field}
                               placeholder={`Enter ${field}`}
                               value={editForm[field]}
                               onChange={(e) =>
-                                setEditForm((prev) => ({ ...prev, [e.target.name]: e.target.value }))
+                                setEditForm((prev) => ({
+                                  ...prev,
+                                  [e.target.name]: e.target.value,
+                                }))
                               }
                               readOnly={field === "name" || field === "email"} // ✅ Make these fields read-only
                             />
@@ -256,7 +282,10 @@ const Section_a = () => {
                             className="border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                             value={editForm.role}
                             onChange={(e) =>
-                              setEditForm((prev) => ({ ...prev, role: e.target.value }))
+                              setEditForm((prev) => ({
+                                ...prev,
+                                role: e.target.value,
+                              }))
                             }
                           >
                             <option value="">Select</option>
@@ -283,7 +312,6 @@ const Section_a = () => {
                     <Trash2
                       size={16}
                       className="text-red-600 cursor-pointer hover:text-red-800"
-
                     />
                   </DialogTrigger>
                   <DialogContent className="sm:max-w-[420px] ">
@@ -318,9 +346,10 @@ const Section_a = () => {
                   <Users className="w-5 h-5 text-blue-300" />
                 </div>
                 <div>
-                  <h3 className="text-lg font-semibold text-gray-900">{member.name}</h3>
+                  <h3 className="text-lg font-semibold text-gray-900">
+                    {member.name}
+                  </h3>
                   <p className="text-sm text-gray-500">{member.role}</p>
-
                 </div>
               </div>
               <div className="flex items-center text-sm text-gray-600">
@@ -334,7 +363,9 @@ const Section_a = () => {
               <div className="flex items-center text-sm text-gray-600">
                 <MapPin className="w-4 h-4 " />
                 {member.location && (
-                  <p className="text-xs text-gray-600 capitalize ml-2">{member.location}</p>
+                  <p className="text-xs text-gray-600 capitalize ml-2">
+                    {member.location}
+                  </p>
                 )}
               </div>
             </div>

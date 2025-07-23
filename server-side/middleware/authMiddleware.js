@@ -23,13 +23,11 @@ const authMiddleware = async (req, res, next) => {
     }
 
     // Fetch user
-    let userType = "user";
     let user = await User.findById(decoded.id).select("-password");
 
     // If not found, try Employee
     if (!user) {
       user = await Employee.findById(decoded.id).select("-password");
-      userType = "employee";
     }
 
     if (!user){
@@ -38,21 +36,12 @@ const authMiddleware = async (req, res, next) => {
     } 
 
     // ✅ Fix here: use _id instead of id
-    req.user = {
-      _id: user._id,
-      email: user.email,
-      role: user.role,
-      type: userType,
-    };
-
-    if (userType === "employee") {
-      req.user.teamMemberId = user.teamMemberId; // Only attach if exists
-      }
+    req.user = user; // Attach full user/employee document
 
     next();
   } catch (err) {
     console.error(err);
-    res.status(401).json({ message: "Invalid token" });
+    return res.status(401).json({ message: "Invalid token" });
   }
 };
 

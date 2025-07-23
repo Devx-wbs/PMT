@@ -3,6 +3,11 @@ const Employee = require("../models/Employee");
 const Team = require("../models/Team");
 const Activity = require("../models/Activity");
 
+const getPerformer = (user) =>
+  user?.firstName
+    ? user.firstName + (user.lastName ? " " + user.lastName : "")
+    : user?.name || user?.email || "Unknown";
+
 exports.createTask = async (req, res) => {
   try {
     const { title, description, assignedTo } = req.body;
@@ -35,7 +40,7 @@ exports.createTask = async (req, res) => {
       action: "add",
       name: task.title,
       description: `Created task ${task.title}`,
-      performedBy: req.user?.firstName || req.user?.name || "Unknown",
+      performedBy: getPerformer(req.user),
     });
     res.status(201).json({ message: "Task created successfully.", task });
   } catch (error) {

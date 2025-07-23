@@ -2,6 +2,11 @@ const Team = require("../models/Team");
 const Employee = require("../models/Employee");
 const Activity = require("../models/Activity");
 
+const getPerformer = (user) =>
+  user?.firstName
+    ? user.firstName + (user.lastName ? " " + user.lastName : "")
+    : user?.name || user?.email || "Unknown";
+
 // APIs for createTeam, deleteTeam, addMember, removeMember
 exports.createTeam = async (req, res) => {
   try {
@@ -55,7 +60,7 @@ exports.createTeam = async (req, res) => {
       action: "add",
       name: team.teamName,
       description: `Created team ${team.teamName}`,
-      performedBy: req.user?.firstName || req.user?.name || "Unknown",
+      performedBy: getPerformer(req.user),
     });
 
     res.status(201).json({ message: "Team created successfully", team });
@@ -88,7 +93,7 @@ exports.deleteTeam = async (req, res) => {
       action: "delete",
       name: team.teamName,
       description: `Deleted team ${team.teamName}`,
-      performedBy: req.user?.firstName || req.user?.name || "Unknown",
+      performedBy: getPerformer(req.user),
     });
 
     return res

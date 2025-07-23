@@ -241,9 +241,40 @@ function Section_a() {
     { name: "On Hold", value: onHoldProjects },
   ];
 
-  // Placeholder company stats (replace with real data if available)
-  const totalTeams = 4;
-  const totalEmployees = 24;
+  const [totalTeams, setTotalTeams] = useState(0);
+  const [totalEmployees, setTotalEmployees] = useState(0);
+
+  useEffect(() => {
+    const fetchCounts = async () => {
+      const token = localStorage.getItem("token");
+      try {
+        // Fetch employees
+        const employeesRes = await apiHandler.GetApi(
+          api_url.getAllEmployees,
+          token
+        );
+        if (Array.isArray(employeesRes)) {
+          setTotalEmployees(employeesRes.length);
+          // Count unique teams by teamName if available
+          const teams = new Set(
+            employeesRes.map((e) => e.teamName).filter(Boolean)
+          );
+          setTotalTeams(teams.size);
+        }
+        // Fetch projects
+        const projectsRes = await apiHandler.GetApi(
+          api_url.getAllProjects,
+          token
+        );
+        if (Array.isArray(projectsRes.projects)) {
+          // Already handled in existing code for totalProjects
+        }
+      } catch (err) {
+        // Optionally handle error
+      }
+    };
+    fetchCounts();
+  }, []);
 
   return (
     <div className="max-w-[1440px] bg-white m-auto p-6 min-h-screen">
@@ -342,8 +373,8 @@ function Section_a() {
         <div className="flex border rounded bg-white py-3 px-3 w-full sm:w-[48%] md:w-[31%] xl:w-[18%] shadow-sm">
           <div className="w-full">
             <p className="font-semibold text-gray-700">Total Team</p>
-            <p className="font-bold text-2xl text-gray-800">4</p>
-            <p className="text-gray-400">24 employees</p>
+            <p className="font-bold text-2xl text-gray-800">{totalTeams}</p>
+            <p className="text-gray-400">{totalEmployees} employees</p>
           </div>
           <Users className="h-6 w-6 text-gray-400" />
         </div>

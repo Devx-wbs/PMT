@@ -4,7 +4,12 @@ const jwt = require("jsonwebtoken");
 const crypto = require("crypto");
 const sendEmail = require("../utils/sendEmail");
 const User = require("../models/User"); // Required for companyName
-const Activity = require('../models/Activity');
+const Activity = require("../models/Activity");
+
+const getPerformer = (user) =>
+  user?.firstName
+    ? user.firstName + (user.lastName ? " " + user.lastName : "")
+    : user?.name || user?.email || "Unknown";
 
 // API: Add new Employee
 exports.addEmployee = async (req, res) => {
@@ -12,16 +17,21 @@ exports.addEmployee = async (req, res) => {
     return res.status(403).json({ message: "Only owners can add employees" });
   }
 
-  const { name, email, designation, role, location, phoneNo, profileLogo } = req.body;
+  const { name, email, designation, role, location, phoneNo, profileLogo } =
+    req.body;
 
   if (!name || !email || !phoneNo) {
-    return res.status(400).json({ message: "Name, email, and phoneNo are required" });
+    return res
+      .status(400)
+      .json({ message: "Name, email, and phoneNo are required" });
   }
 
   try {
     const existingEmployee = await Employee.findOne({ email });
     if (existingEmployee) {
-      return res.status(400).json({ message: "Email already exists for an employee" });
+      return res
+        .status(400)
+        .json({ message: "Email already exists for an employee" });
     }
 
     const lastEmployee = await Employee.findOne({
@@ -61,11 +71,11 @@ exports.addEmployee = async (req, res) => {
 
     await newEmployee.save();
     await Activity.create({
-      type: 'Employee',
-      action: 'add',
+      type: "Employee",
+      action: "add",
       name: newEmployee.name,
       description: `Added new employee ${newEmployee.name}`,
-      performedBy: req.user?.firstName || req.user?.name || 'Unknown',
+      performedBy: getPerformer(req.user),
     });
 
     await sendEmail(
@@ -84,7 +94,9 @@ http://localhost:5173/emp-login
 Note: This is an auto-generated password and it will expire in 5 minutes. If you do not set your password in time, your account will be deleted automatically.`
     );
 
-    res.status(201).json({ message: "Employee added successfully", employee: newEmployee });
+    res
+      .status(201)
+      .json({ message: "Employee added successfully", employee: newEmployee });
   } catch (err) {
     console.error("Error adding employee:", err);
     res.status(500).json({ message: "Internal server error" });
@@ -104,21 +116,27 @@ exports.employeeFirstLogin = async (req, res) => {
 
   if (employee.passwordExpiresAt && new Date() > employee.passwordExpiresAt) {
     return res.status(403).json({
-      message: "Your temporary password has expired. Please contact the administrator for a new one.",
+      message:
+        "Your temporary password has expired. Please contact the administrator for a new one.",
     });
   }
 
   if (!employee.mustChangePassword)
-    return res.status(400).json({ message: "Password already updated, use login instead" });
+    return res
+      .status(400)
+      .json({ message: "Password already updated, use login instead" });
 
   const isMatch = await bcrypt.compare(oldPassword, employee.password);
-  if (!isMatch) return res.status(400).json({ message: "Old password is incorrect" });
+  if (!isMatch)
+    return res.status(400).json({ message: "Old password is incorrect" });
 
   if (newPassword !== confirmPassword)
     return res.status(400).json({ message: "New passwords do not match" });
 
   if (newPassword.length < 6)
-    return res.status(400).json({ message: "Password must be at least 6 characters long" });
+    return res
+      .status(400)
+      .json({ message: "Password must be at least 6 characters long" });
 
   employee.password = await bcrypt.hash(newPassword, 10);
   employee.passwordExpiresAt = null;
@@ -126,7 +144,9 @@ exports.employeeFirstLogin = async (req, res) => {
 
   await employee.save();
 
-  res.status(200).json({ message: "Password updated successfully. Please login." });
+  res
+    .status(200)
+    .json({ message: "Password updated successfully. Please login." });
 };
 
 // API: Employee Login
@@ -138,7 +158,9 @@ exports.login = async (req, res) => {
   }
 
   if (confirmPassword !== undefined) {
-    return res.status(400).json({ message: "Do not include confirmPassword during login" });
+    return res
+      .status(400)
+      .json({ message: "Do not include confirmPassword during login" });
   }
 
   try {
@@ -149,7 +171,8 @@ exports.login = async (req, res) => {
 
     if (employee.passwordExpiresAt && new Date() > employee.passwordExpiresAt) {
       return res.status(403).json({
-        message: "Temporary password has expired. Please contact your administrator.",
+        message:
+          "Temporary password has expired. Please contact your administrator.",
       });
     }
 
@@ -159,7 +182,9 @@ exports.login = async (req, res) => {
     }
 
     if (employee.mustChangePassword) {
-      return res.status(400).json({ message: "Please update your password before logging in" });
+      return res
+        .status(400)
+        .json({ message: "Please update your password before logging in" });
     }
 
     const token = jwt.sign(
@@ -188,7 +213,8 @@ exports.login = async (req, res) => {
 // Edit employee using teamMemberId
 exports.editEmployee = async (req, res) => {
   const { teamMemberId } = req.params;
-  const { name, email, designation, role, location, phoneNo, profileLogo } = req.body;
+  const { name, email, designation, role, location, phoneNo, profileLogo } =
+    req.body;
 
   if (!teamMemberId) {
     return res.status(400).json({ message: "teamMemberId is required" });
@@ -214,14 +240,16 @@ exports.editEmployee = async (req, res) => {
 
     await employee.save();
     await Activity.create({
-      type: 'Employee',
-      action: 'edit',
+      type: "Employee",
+      action: "edit",
       name: employee.name,
       description: `Edited employee ${employee.name}`,
-      performedBy: req.user?.firstName || req.user?.name || 'Unknown',
+      performedBy: getPerformer(req.user),
     });
 
-    res.status(200).json({ message: "Employee updated successfully", employee });
+    res
+      .status(200)
+      .json({ message: "Employee updated successfully", employee });
   } catch (error) {
     console.error("❌ Error updating employee:", error);
     res.status(500).json({ message: "Internal server error" });
@@ -242,11 +270,11 @@ exports.deleteEmployee = async (req, res) => {
 
     await Employee.deleteOne({ teamMemberId });
     await Activity.create({
-      type: 'Employee',
-      action: 'delete',
+      type: "Employee",
+      action: "delete",
       name: employee.name,
       description: `Deleted employee ${employee.name}`,
-      performedBy: req.user?.firstName || req.user?.name || 'Unknown',
+      performedBy: getPerformer(req.user),
     });
     res.status(200).json({ message: "Employee deleted successfully" });
   } catch (error) {
@@ -269,7 +297,9 @@ exports.getAllEmployees = async (req, res) => {
 // Get all employees with role: "teamLead"
 exports.getAllTeamLeads = async (req, res) => {
   try {
-    const teamLeads = await Employee.find({ role: "teamLead" }).select("-password");
+    const teamLeads = await Employee.find({ role: "teamLead" }).select(
+      "-password"
+    );
     res.status(200).json(teamLeads);
   } catch (error) {
     console.error("Error fetching team leads:", error);
@@ -291,7 +321,9 @@ exports.getAllAdmins = async (req, res) => {
 // Get all employees with role: "teamMember"
 exports.getAllTeamMembers = async (req, res) => {
   try {
-    const teamMembers = await Employee.find({ role: "teamMember" }).select("-password");
+    const teamMembers = await Employee.find({ role: "teamMember" }).select(
+      "-password"
+    );
     res.status(200).json(teamMembers);
   } catch (error) {
     console.error("Error fetching team members:", error);
@@ -302,9 +334,12 @@ exports.getAllTeamMembers = async (req, res) => {
 // Get recent activity
 exports.getRecentActivity = async (req, res) => {
   try {
-    const activities = await require('../models/Activity').find().sort({ timestamp: -1 }).limit(20);
+    const activities = await require("../models/Activity")
+      .find()
+      .sort({ timestamp: -1 })
+      .limit(20);
     res.status(200).json({ activities });
   } catch (error) {
-    res.status(500).json({ message: 'Failed to fetch activity', error });
+    res.status(500).json({ message: "Failed to fetch activity", error });
   }
 };

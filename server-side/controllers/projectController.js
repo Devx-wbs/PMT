@@ -2,6 +2,11 @@ const Project = require("../models/Project");
 const Employee = require("../models/Employee");
 const Activity = require("../models/Activity");
 
+const getPerformer = (user) =>
+  user?.firstName
+    ? user.firstName + (user.lastName ? " " + user.lastName : "")
+    : user?.name || user?.email || "Unknown";
+
 exports.createProject = async (req, res) => {
   try {
     if (req.user.role !== "owner") {
@@ -53,7 +58,7 @@ exports.createProject = async (req, res) => {
       action: "add",
       name: newProject.project_name,
       description: `Created project ${newProject.project_name}`,
-      performedBy: req.user?.firstName || req.user?.name || "Unknown",
+      performedBy: getPerformer(req.user),
     });
     res.status(201).json({ message: "Project created", project: newProject });
   } catch (err) {
@@ -110,7 +115,7 @@ exports.updateProject = async (req, res) => {
       action: "edit",
       name: project.project_name,
       description: `Edited project ${project.project_name}`,
-      performedBy: req.user?.firstName || req.user?.name || "Unknown",
+      performedBy: getPerformer(req.user),
     });
 
     res.status(200).json({ message: "Project updated", project });
@@ -138,7 +143,7 @@ exports.deleteProject = async (req, res) => {
       action: "delete",
       name: project.project_name,
       description: `Deleted project ${project.project_name}`,
-      performedBy: req.user?.firstName || req.user?.name || "Unknown",
+      performedBy: getPerformer(req.user),
     });
 
     res.status(200).json({ message: "Project deleted successfully" });
