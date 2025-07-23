@@ -14,7 +14,7 @@ exports.createTeam = async (req, res) => {
     // Validate team lead using teamMemberId and role
     const teamLeadUser = await Employee.findOne({
       teamMemberId: teamLead.trim(),
-      role: "team_lead",
+      role: "teamLead",
     });
     if (!teamLeadUser) {
       return res
@@ -27,7 +27,7 @@ exports.createTeam = async (req, res) => {
     if (Array.isArray(teamMembers) && teamMembers.length > 0) {
       const members = await Employee.find({
         teamMemberId: { $in: teamMembers.map((id) => id.trim()) },
-        role: "team_member",
+        role: "teamMember",
       });
 
       if (members.length !== teamMembers.length) {
@@ -177,6 +177,28 @@ exports.removeMember = async (req, res) => {
     res.status(200).json({ message: "Member removed from team successfully", team });
   } catch (err) {
     console.error("Error removing team member:", err);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+// Get all Team Leads
+exports.getAllTeamLeads = async (req, res) => {
+  try {
+    const teamLeads = await Employee.find({ role: "teamLead" }).select("-password"); // exclude password
+    res.status(200).json({ teamLeads });
+  } catch (err) {
+    console.error("Error fetching team leads:", err);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+// Get all Team Members
+exports.getAllTeamMembers = async (req, res) => {
+  try {
+    const teamMembers = await Employee.find({ role: "teamMember" }).select("-password");
+    res.status(200).json({ teamMembers });
+  } catch (err) {
+    console.error("Error fetching team members:", err);
     res.status(500).json({ message: "Server error" });
   }
 };
