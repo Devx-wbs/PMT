@@ -1,12 +1,13 @@
-import React from 'react'
-import Section_a from './AllTask/Section_a'
+import React from "react";
+import Section_a from "./AllTask/Section_a";
+import MainLayout from "../components/MainLayout";
 
 const AllTask = () => {
   return (
-    <>
-    <Section_a/>
-    </>
-  )
-}
+    <MainLayout noPadding={true}>
+      <Section_a />
+    </MainLayout>
+  );
+};
 
-export default AllTask
+export default AllTask;
