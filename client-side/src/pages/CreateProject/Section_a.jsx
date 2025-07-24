@@ -4,10 +4,14 @@ import { useNavigate } from "react-router-dom";
 import { api_url } from "@/api/Api";
 import { toast } from "react-toastify";
 import { apiHandler } from "@/api/ApiHandler";
+import DropDownWithCheckBox from "@/components/dropDownWithCheckBox";
 
 const Section_a = () => {
   const navigate = useNavigate();
   const token = localStorage.getItem("token");
+  const [selectedMermber, setSelectedMember] = useState([]);
+  console.log(selectedMermber, "selectedMermber");
+
   const [form, setForm] = useState({
     projectName: "",
     description: "",
@@ -16,10 +20,13 @@ const Section_a = () => {
     status: "",
     startDate: "",
     endDate: "",
+    projectMember: ""
   });
+
 
   const [errors, setErrors] = useState({});
   const [teamLeads, setTeamLeads] = useState([]);
+  const [teamMember, setTeamMember] = useState([]);
   const [loadingLeads, setLoadingLeads] = useState(true);
 
   const startDateRef = useRef(null);
@@ -44,6 +51,38 @@ const Section_a = () => {
     };
     fetchTeamLeads();
   }, []);
+
+  useEffect(() => {
+    const fetchTeamMember = async () => {
+      setLoadingLeads(true);
+      const token = localStorage.getItem("token");
+
+      try {
+        const res = await apiHandler.GetApi(api_url.getTeamMember, token);
+
+        if (Array.isArray(res)) {
+          const transformed = res.map((member) => ({
+            id: member.teamMemberId,
+            name: member.name.charAt(0).toUpperCase() + member.name.slice(1),
+          }));
+
+          setTeamMember(transformed);
+        } else {
+          setTeamMember([]);
+        }
+      } catch {
+        setTeamMember([]);
+      } finally {
+        setLoadingLeads(false);
+      }
+    };
+
+    fetchTeamMember();
+  }, []);
+
+
+
+
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -81,8 +120,10 @@ const Section_a = () => {
       start_date: form.startDate,
       end_date: form.endDate,
       project_lead: form.projectLead,
+      team_members: selectedMermber
     };
-    console.log(obj, "obj========<<<<<<");
+
+    console.log(obj, "obj====>");
 
     try {
       const response = await apiHandler.postApiWithToken(
@@ -162,61 +203,106 @@ const Section_a = () => {
               name="clientName"
               value={form.clientName}
               onChange={handleChange}
-              className="mt-1 block w-full rounded-md border border-gray-300 shadow-sm p-2 focus:ring-2 focus:ring-blue-500"
+              className="mt-1 block w-full rounded-md border border-gray-300 py-2 px-4 focus:border-blue-500 focus:outline-none"
             />
             {errors.clientName && (
               <p className="text-red-500 text-sm mt-1">{errors.clientName}</p>
             )}
           </div>
 
+
           <div>
             <label className="block text-sm font-medium text-gray-700">
               Project Lead
             </label>
-            <select
-              name="projectLead"
-              value={form.projectLead}
-              onChange={handleChange}
-              className="mt-1 block w-full rounded-md border border-gray-300 shadow-sm p-2 focus:ring-2 focus:ring-blue-500"
-            >
-              <option value="">Select Project Lead</option>
-              {loadingLeads ? (
-                <option disabled>Loading...</option>
-              ) : teamLeads.length === 0 ? (
-                <option disabled>No team leads found</option>
-              ) : (
-                teamLeads.map((lead) => (
-                  <option key={lead.teamMemberId} value={lead.teamMemberId}>
-                    {lead.name.charAt(0).toUpperCase() + lead.name.slice(1)} (
-                    {lead.teamMemberId})
-                  </option>
-                ))
-              )}
-            </select>
+            <div className="relative">
+              <select
+                name="projectLead"
+                value={form.projectLead}
+                onChange={handleChange}
+                className="mt-1 block w-full appearance-none rounded-md border border-gray-300 bg-white py-2 px-4 pr-10 focus:border-blue-500 focus:outline-none"
+              >
+                <option value="">Select Project Lead</option>
+                {loadingLeads ? (
+                  <option disabled>Loading...</option>
+                ) : teamLeads.length === 0 ? (
+                  <option disabled>No team leads found</option>
+                ) : (
+                  teamLeads.map((lead) => (
+                    <option key={lead.teamMemberId} value={lead.teamMemberId}>
+                      {lead.name.charAt(0).toUpperCase() + lead.name.slice(1)} (
+                      {lead.teamMemberId})
+                    </option>
+                  ))
+                )}
+              </select>
+
+              <div className="pointer-events-none absolute inset-y-0 right-3 flex items-center">
+                <svg
+                  className="h-4 w-4 text-gray-700"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth={2.4}
+                  viewBox="0 0 24 24"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                </svg>
+              </div>
+            </div>
+
             {errors.projectLead && (
               <p className="text-red-500 text-sm mt-1">{errors.projectLead}</p>
             )}
+          </div>
+
+
+          <div className="">
+            <DropDownWithCheckBox
+              label="Team Members"
+              options={teamMember}
+              onChange={(selectedUsers) => {
+                const idsOnly = selectedUsers.map((user) => user?.id)
+                setSelectedMember(idsOnly)
+              }}
+            />
+
           </div>
 
           <div>
             <label className="block text-sm font-medium text-gray-700">
               Status
             </label>
-            <select
-              name="status"
-              value={form.status}
-              onChange={handleChange}
-              className="mt-1 block w-full rounded-md border border-gray-300 shadow-sm p-2 focus:ring-2 focus:ring-blue-500"
-            >
-              <option value="">Select Status</option>
-              <option value="ongoing">Ongoing</option>
-              <option value="completed">Completed</option>
-              <option value="on hold">On Hold</option>
-            </select>
+            <div className="relative mt-1">
+              <select
+                name="status"
+                value={form.status}
+                onChange={handleChange}
+                className="appearance-none block w-full rounded-md border border-gray-300 shadow-sm py-2 px-4 pr-10 focus:border-blue-500 focus:outline-none"
+              >
+                <option value="">Select Status</option>
+                <option value="ongoing">Ongoing</option>
+                <option value="completed">Completed</option>
+                <option value="on hold">On Hold</option>
+              </select>
+
+              <div className="pointer-events-none absolute inset-y-0 right-3 flex items-center  text-gray-500">
+                <svg
+                  className="h-4 w-4 text-gray-700"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth={2.4}
+                  viewBox="0 0 24 24"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                </svg>
+              </div>
+            </div>
+
             {errors.status && (
               <p className="text-red-500 text-sm mt-1">{errors.status}</p>
             )}
           </div>
+
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>

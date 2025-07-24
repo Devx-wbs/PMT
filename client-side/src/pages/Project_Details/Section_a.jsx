@@ -64,8 +64,8 @@ const Section_a = () => {
               <p className="text-sm text-gray-500">
                 {project.start_date
                   ? `${new Date(project.start_date).toLocaleDateString(
-                      "en-GB"
-                    )} - Ongoing`
+                    "en-GB"
+                  )} - Ongoing`
                   : "No start date - Ongoing"}
               </p>
             </div>
@@ -137,16 +137,29 @@ const Section_a = () => {
             <span>{project.lead || "Not Assigned"}</span>
           </div>
         </div>
+        <div className="mb-5">
+          <div className="flex items-center gap-2">
+            <h4 className="font-semibold">Project Members:</h4>
+            <span className="text-sm text-gray-800">
+              {project?.team_members?.length ?? 0}
+            </span>
+          </div>
 
-        {/* Members */}
-        <div className="mb-4">
-          <h4 className="font-semibold mb-2">Team Members</h4>
-          <p className="text-xs text-gray-500 mt-1">
-            Total Members: {project.members || project.totalMembers || 0}
-          </p>
+          <div className="ml-4 mt-2 text-sm text-gray-700">
+            {project?.team_members?.length > 0 ? (
+              <ul className="list-disc list-inside">
+                {project.team_members.map((memberId, index) => (
+                  <li key={index}>{memberId}</li>
+                ))}
+              </ul>
+            ) : (
+              <p>No members assigned.</p>
+            )}
+          </div>
         </div>
 
-        {/* Timeline */}
+
+
         <div>
           <h4 className="font-semibold mb-2">Project Timeline</h4>
           <div className="grid grid-cols-2 gap-4">

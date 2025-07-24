@@ -12,8 +12,9 @@ const Section_a = () => {
   const [deleteId, setDeleteId] = useState(null);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [projectMemberList, setProjectMemberList] = useState([])
 
-  // console.log(projects, "====projects");
+  console.log(projects, "====projects");
 
   useEffect(() => {
     const fetchProjects = async () => {
@@ -24,6 +25,11 @@ const Section_a = () => {
         const response = await apiHandler.GetApi(api_url.getAllProjects, token);
         if (Array.isArray(response.projects)) {
           setProjects(response.projects);
+//           const currentProject = projects.find(p => p.project_id === 'Pr-10'); 
+
+// const teamDetails = getProjectTeamDetails(currentProject, teamMember);
+
+console.log(teamDetails);
         } else {
           setError(response?.message || "Failed to fetch projects");
         }
@@ -103,13 +109,13 @@ const Section_a = () => {
                     </p>
                   </div>
                   <span className="bg-blue-500 text-white text-xs font-medium px-3  py-1 rounded-full capitalize">
-                    {project.project_status || project.status}
+                    {project?.project_status || project.status}
                   </span>
                 </div>
 
                 <div className="flex items-center text-sm text-gray-600 gap-1 mt-5">
                   <Users size={16} />
-                  <span>{project.members || 0} members</span>
+                  <span>{project?.team_members?.length || 0} members</span>
                 </div>
               </div>
             ))}
