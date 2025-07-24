@@ -11,8 +11,13 @@ export const api_url = {
   deleteEmployee: BASE_URL + "/employees/deleteEmployee/:teamMemberId",
   updateTeamMember: BASE_URL + "/employees/editEmployee/:teamMemberId",
   getRecentActivity: BASE_URL + "/activity/recent",
-  getAllTeamLeads: BASE_URL + "/employees/team-leads",
+  getAllTeamLeads: BASE_URL + "/teams/team-leads",
+  getAllTeamMembers: BASE_URL + "/teams/team-members",
+  getAllTeams: BASE_URL + "/teams/all-teams",
+  createTeam: BASE_URL + "/teams/createTeam",
+  deleteTeam: BASE_URL + "/teams/deleteTeam",
   deleteProject: BASE_URL + "/projects/:projectId",
+  updateTeam: BASE_URL + "/teams/updateTeam",
 };
 
 export const Methods = {

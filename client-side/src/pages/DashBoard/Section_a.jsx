@@ -252,51 +252,118 @@ function Section_a() {
   const completedProjects = projects.filter(
     (p) => p.project_status === "completed"
   ).length;
-  const onHoldProjects = projects.filter(
-    (p) => p.project_status === "on hold"
-  ).length;
-
-  // Dynamic pie chart data
+  // No onHoldProjects
   const projectStatusData = [
     { name: "Ongoing", value: activeProjects },
     { name: "Completed", value: completedProjects },
-    { name: "On Hold", value: onHoldProjects },
   ];
 
+  const [teams, setTeams] = useState([]);
   const [totalTeams, setTotalTeams] = useState(0);
   const [totalEmployees, setTotalEmployees] = useState(0);
 
   useEffect(() => {
-    const fetchCounts = async () => {
+    const fetchTeams = async () => {
       const token = localStorage.getItem("token");
       try {
-        // Fetch employees
+        const res = await apiHandler.GetApi(api_url.getAllTeams, token);
+        if (Array.isArray(res.teams)) {
+          setTeams(res.teams);
+          setTotalTeams(res.teams.length);
+        }
+      } catch (err) {
+        // handle error
+      }
+    };
+    fetchTeams();
+  }, []);
+
+  useEffect(() => {
+    const fetchEmployees = async () => {
+      const token = localStorage.getItem("token");
+      try {
         const employeesRes = await apiHandler.GetApi(
           api_url.getAllEmployees,
           token
         );
         if (Array.isArray(employeesRes)) {
           setTotalEmployees(employeesRes.length);
-          // Count unique teams by teamName if available
-          const teams = new Set(
-            employeesRes.map((e) => e.teamName).filter(Boolean)
-          );
-          setTotalTeams(teams.size);
         }
-        // Fetch projects
-        const projectsRes = await apiHandler.GetApi(
-          api_url.getAllProjects,
+      } catch {}
+    };
+    fetchEmployees();
+  }, []);
+
+  // For team size graph
+  const teamSizeData = teams.map((team) => ({
+    name: team.teamName,
+    value: (team.members ? team.members.length : 0) + (team.teamLead ? 1 : 0),
+  }));
+
+  // 3. Add a 'Tasks Overview' card
+  const [tasks, setTasks] = useState([]);
+  const [totalTasks, setTotalTasks] = useState(0);
+  const [completedTasks, setCompletedTasks] = useState(0);
+  const [pendingTasks, setPendingTasks] = useState(0);
+  useEffect(() => {
+    const fetchTasks = async () => {
+      const token = localStorage.getItem("token");
+      try {
+        const res = await apiHandler.GetApi(api_url.getAllTasks, token);
+        if (Array.isArray(res)) {
+          setTasks(res);
+          setTotalTasks(res.length);
+          setCompletedTasks(res.filter((t) => t.status === "completed").length);
+          setPendingTasks(res.filter((t) => t.status !== "completed").length);
+        }
+      } catch {}
+    };
+    fetchTasks();
+  }, []);
+
+  // 4. Add an 'Employee Distribution' pie chart (by role)
+  const [employeeRoles, setEmployeeRoles] = useState({});
+  useEffect(() => {
+    const fetchEmployees = async () => {
+      const token = localStorage.getItem("token");
+      try {
+        const employeesRes = await apiHandler.GetApi(
+          api_url.getAllEmployees,
           token
         );
-        if (Array.isArray(projectsRes.projects)) {
-          // Already handled in existing code for totalProjects
+        if (Array.isArray(employeesRes)) {
+          const roles = employeesRes.reduce((acc, emp) => {
+            acc[emp.role] = (acc[emp.role] || 0) + 1;
+            return acc;
+          }, {});
+          setEmployeeRoles(roles);
         }
-      } catch (err) {
-        // Optionally handle error
-      }
+      } catch {}
     };
-    fetchCounts();
+    fetchEmployees();
   }, []);
+  const employeeRoleData = Object.entries(employeeRoles).map(
+    ([role, count]) => ({ name: role, value: count })
+  );
+
+  // 5. Add an 'Upcoming Project Deadlines' section
+  const upcomingProjects = projects
+    .filter((p) => p.end_date && dayjs(p.end_date).isAfter(dayjs()))
+    .sort((a, b) => dayjs(a.end_date).diff(dayjs(b.end_date)))
+    .slice(0, 5);
+
+  // 6. Add a 'Top Performer' card if task data is available
+  const topPerformer = useMemo(() => {
+    if (!Array.isArray(tasks) || tasks.length === 0) return null;
+    const completedBy = {};
+    tasks.forEach((t) => {
+      if (t.status === "completed") {
+        completedBy[t.assignedTo] = (completedBy[t.assignedTo] || 0) + 1;
+      }
+    });
+    const top = Object.entries(completedBy).sort((a, b) => b[1] - a[1])[0];
+    return top ? { memberId: top[0], count: top[1] } : null;
+  }, [tasks]);
 
   return (
     <div className="max-w-[1440px] bg-white m-auto p-6 min-h-screen">
@@ -336,33 +403,31 @@ function Section_a() {
 
       {/* Project Stats Cards */}
       <div className="flex flex-wrap xl:gap-6 gap-6 2xl:justify-between justify-start">
-        <div className="flex border rounded bg-white py-3 px-3 w-full sm:w-[48%] md:w-[31%] xl:w-[18%] shadow-sm">
+        <div className="flex border rounded bg-gradient-to-br from-blue-50 to-blue-100 py-3 px-3 w-full sm:w-[48%] md:w-[31%] xl:w-[18%] shadow-sm hover:shadow-lg transition">
           <div className="w-full">
             <p className="font-semibold text-gray-700">Total Team</p>
             <p className="font-bold text-2xl text-gray-800">{totalTeams}</p>
             <p className="text-gray-400">{totalEmployees} employees</p>
           </div>
-          <Users className="h-6 w-6 text-gray-400" />
+          <Users className="h-6 w-6 text-blue-400" />
         </div>
-        <div className="flex border rounded bg-white py-3 px-3 w-full sm:w-[48%] md:w-[31%] xl:w-[18%] shadow-sm">
+        <div className="flex border rounded bg-gradient-to-br from-green-50 to-green-100 py-3 px-3 w-full sm:w-[48%] md:w-[31%] xl:w-[18%] shadow-sm hover:shadow-lg transition">
           <div className="w-full">
             <p className="font-semibold text-gray-700">Total Projects</p>
             <p className="font-bold text-2xl text-gray-800">{totalProjects}</p>
-            <p className="text-gray-400">
-              All Projects (including completed, on-hold, and cancelled)
-            </p>
+            <p className="text-gray-400">All Projects (including completed)</p>
           </div>
-          <Briefcase className="h-6 w-6 text-gray-400" />
+          <Briefcase className="h-6 w-6 text-green-400" />
         </div>
-        <div className="flex border rounded bg-white py-3 px-3 w-full sm:w-[48%] md:w-[31%] xl:w-[18%] shadow-sm">
+        <div className="flex border rounded bg-gradient-to-br from-yellow-50 to-yellow-100 py-3 px-3 w-full sm:w-[48%] md:w-[31%] xl:w-[18%] shadow-sm hover:shadow-lg transition">
           <div className="w-full">
             <p className="font-semibold text-gray-700">Active Projects</p>
             <p className="font-bold text-2xl text-gray-800">{activeProjects}</p>
             <p className="text-gray-400">Currently being worked on</p>
           </div>
-          <Clock className="h-6 w-6 text-gray-400" />
+          <Clock className="h-6 w-6 text-yellow-400" />
         </div>
-        <div className="flex border rounded bg-white py-3 px-3 w-full sm:w-[48%] md:w-[31%] xl:w-[18%] shadow-sm">
+        <div className="flex border rounded bg-gradient-to-br from-purple-50 to-purple-100 py-3 px-3 w-full sm:w-[48%] md:w-[31%] xl:w-[18%] shadow-sm hover:shadow-lg transition">
           <div className="w-full">
             <p className="font-semibold text-gray-700">Completed Projects</p>
             <p className="font-bold text-2xl text-gray-800">
@@ -370,16 +435,32 @@ function Section_a() {
             </p>
             <p className="text-gray-400">Finished Projects</p>
           </div>
-          <CheckCircle className="h-6 w-6 text-gray-400" />
+          <CheckCircle className="h-6 w-6 text-purple-400" />
         </div>
-        <div className="flex border rounded bg-white py-3 px-3 w-full sm:w-[48%] md:w-[31%] xl:w-[18%] shadow-sm">
+        <div className="flex border rounded bg-gradient-to-br from-pink-50 to-pink-100 py-3 px-3 w-full sm:w-[48%] md:w-[31%] xl:w-[18%] shadow-sm hover:shadow-lg transition">
           <div className="w-full">
-            <p className="font-semibold text-gray-700">On Hold Projects</p>
-            <p className="font-bold text-2xl text-gray-800">{onHoldProjects}</p>
-            <p className="text-gray-400">Projects currently on hold</p>
+            <p className="font-semibold text-gray-700">Tasks Overview</p>
+            <p className="font-bold text-2xl text-gray-800">{totalTasks}</p>
+            <p className="text-gray-400">
+              {completedTasks} completed, {pendingTasks} pending
+            </p>
           </div>
-          <Clock className="h-6 w-6 text-gray-400" />
+          <CheckCircle className="h-6 w-6 text-pink-400" />
         </div>
+        {topPerformer && (
+          <div className="flex border rounded bg-gradient-to-br from-indigo-50 to-indigo-100 py-3 px-3 w-full sm:w-[48%] md:w-[31%] xl:w-[18%] shadow-sm hover:shadow-lg transition">
+            <div className="w-full">
+              <p className="font-semibold text-gray-700">Top Performer</p>
+              <p className="font-bold text-2xl text-gray-800">
+                {topPerformer.memberId}
+              </p>
+              <p className="text-gray-400">
+                {topPerformer.count} tasks completed
+              </p>
+            </div>
+            <Users className="h-6 w-6 text-indigo-400" />
+          </div>
+        )}
       </div>
       {/* Recent Activity Section */}
       <div className="mt-6">
@@ -445,6 +526,35 @@ function Section_a() {
           data={projectStatusData}
         />
         <ChartBlock title="Team Performance" data={teamPerformanceData} />
+        <ChartBlock title="Team Sizes" data={teamSizeData} />
+        <ChartBlock title="Employee Distribution" data={employeeRoleData} />
+      </div>
+      {/* Upcoming Project Deadlines section */}
+      <div className="mt-6">
+        <div className="bg-white border rounded shadow px-6 py-4">
+          <h3 className="text-lg font-semibold text-gray-800 mb-2">
+            Upcoming Project Deadlines
+          </h3>
+          {upcomingProjects.length === 0 ? (
+            <div className="text-gray-500">No upcoming deadlines.</div>
+          ) : (
+            <ul className="text-gray-600 text-sm space-y-2">
+              {upcomingProjects.map((p, idx) => (
+                <li
+                  key={idx}
+                  className="flex items-center gap-3 border-b last:border-b-0 py-2"
+                >
+                  <span className="font-bold text-blue-600">
+                    {p.project_name}
+                  </span>
+                  <span className="text-xs text-gray-400">
+                    Due: {dayjs(p.end_date).format("MMM D, YYYY")}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
       </div>
       {/* Error/Loading States */}
       {loading ? (

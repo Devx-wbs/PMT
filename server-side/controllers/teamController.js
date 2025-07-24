@@ -8,10 +8,9 @@ const getPerformer = (user) =>
     : user?.name || user?.email || "Unknown";
 
 // APIs for createTeam, deleteTeam, addMember, removeMember
-exports.createTeam = async (req, res) => {cd  
+exports.createTeam = async (req, res) => {
   try {
-    const { teamName, description, projectName, teamLead, teamMembers } =
-      req.body;
+    const { teamName, description, teamLead, teamMembers } = req.body;
 
     if (!req.user || req.user.role !== "owner") {
       return res.status(403).json({ message: "Only owner can create teams" });
@@ -50,7 +49,6 @@ exports.createTeam = async (req, res) => {cd
     const team = await Team.create({
       teamName,
       description,
-      projectName,
       createdBy: req.user._id,
       teamLead: teamLeadUser._id,
       members: memberIds,
@@ -72,7 +70,7 @@ exports.createTeam = async (req, res) => {cd
 
 exports.deleteTeam = async (req, res) => {
   try {
-    const { teamName } = req.body;
+    const { teamName } = req.query;
 
     if (!req.user || req.user.role !== "owner") {
       return res.status(403).json({ message: "Only admin can delete teams" });
@@ -105,116 +103,52 @@ exports.deleteTeam = async (req, res) => {
   }
 };
 
-// Add Member to Team
-exports.addMember = async (req, res) => {
+exports.updateTeam = async (req, res) => {
   try {
-    const { teamLeadId, teamName, teamMemberId } = req.body;
+    const { teamName, description, teamLead, teamMembers } = req.body;
 
-    if (!teamLeadId || !teamName || !teamMemberId) {
-      return res.status(400).json({ message: "All fields are required" });
+    if (!req.user || req.user.role !== "owner") {
+      return res.status(403).json({ message: "Only owner can edit teams" });
     }
 
-    const teamLead = await Employee.findOne({
-      teamMemberId: teamLeadId.trim(),
-      role: "teamLead",
-    });
-    if (!teamLead) {
-      return res
-        .status(403)
-        .json({ message: "Only team leads can add members" });
+    if (!teamName) {
+      return res.status(400).json({ message: "Team name is required" });
     }
 
-    const team = await Team.findOne({
-      teamName: teamName.trim(),
-      teamLead: teamLead._id,
-    });
+    const team = await Team.findOne({ teamName: teamName.trim() });
     if (!team) {
-      return res
-        .status(404)
-        .json({ message: "Team not found or not owned by this team lead" });
+      return res.status(404).json({ message: "Team not found" });
     }
 
-    const memberToAdd = await Employee.findOne({
-      teamMemberId: teamMemberId.trim(),
-      role: "teamMember",
-    });
-    if (!memberToAdd) {
-      return res
-        .status(400)
-        .json({ message: "Provided ID is not a valid team member" });
+    if (description !== undefined) team.description = description;
+
+    // Convert teamLead (teamMemberId) to ObjectId
+    if (teamLead !== undefined) {
+      const leadDoc = await Employee.findOne({ teamMemberId: teamLead });
+      if (!leadDoc) {
+        return res.status(400).json({ message: "Invalid team lead" });
+      }
+      team.teamLead = leadDoc._id;
     }
 
-    if (team.members.includes(memberToAdd._id)) {
-      return res.status(400).json({ message: "Member already in the team" });
+    // Convert teamMembers (array of teamMemberId) to ObjectIds
+    if (teamMembers !== undefined) {
+      const memberDocs = await Employee.find({
+        teamMemberId: { $in: teamMembers },
+      });
+      if (memberDocs.length !== teamMembers.length) {
+        return res
+          .status(400)
+          .json({ message: "One or more team members are invalid" });
+      }
+      team.members = memberDocs.map((m) => m._id);
     }
 
-    team.members.push(memberToAdd._id);
     await team.save();
 
-    res
-      .status(200)
-      .json({ message: "Member added to team successfully", team });
+    res.status(200).json({ message: "Team updated successfully", team });
   } catch (err) {
-    console.error("Error adding team member:", err);
-    res.status(500).json({ message: "Server error" });
-  }
-};
-
-// Remove Member from Team
-exports.removeMember = async (req, res) => {
-  try {
-    const { teamLeadId, teamName, teamMemberId } = req.body;
-
-    if (!teamLeadId || !teamName || !teamMemberId) {
-      return res.status(400).json({ message: "All fields are required" });
-    }
-
-    const teamLead = await Employee.findOne({
-      teamMemberId: teamLeadId.trim(),
-      role: "teamLead",
-    });
-    if (!teamLead) {
-      return res
-        .status(403)
-        .json({ message: "Only team leads can remove members" });
-    }
-
-    const team = await Team.findOne({
-      teamName: teamName.trim(),
-      teamLead: teamLead._id,
-    });
-    if (!team) {
-      return res
-        .status(404)
-        .json({ message: "Team not found or not owned by this team lead" });
-    }
-
-    const memberToRemove = await Employee.findOne({
-      teamMemberId: teamMemberId.trim(),
-      role: "teamMember",
-    });
-    if (!memberToRemove) {
-      return res
-        .status(400)
-        .json({ message: "Provided ID is not a valid team member" });
-    }
-
-    if (!team.members.includes(memberToRemove._id)) {
-      return res
-        .status(400)
-        .json({ message: "Member is not part of this team" });
-    }
-
-    team.members = team.members.filter(
-      (id) => id.toString() !== memberToRemove._id.toString()
-    );
-    await team.save();
-
-    res
-      .status(200)
-      .json({ message: "Member removed from team successfully", team });
-  } catch (err) {
-    console.error("Error removing team member:", err);
+    console.error("Error updating team:", err);
     res.status(500).json({ message: "Server error" });
   }
 };
