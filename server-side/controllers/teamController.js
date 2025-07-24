@@ -8,7 +8,7 @@ const getPerformer = (user) =>
     : user?.name || user?.email || "Unknown";
 
 // APIs for createTeam, deleteTeam, addMember, removeMember
-exports.createTeam = async (req, res) => {
+exports.createTeam = async (req, res) => {cd  
   try {
     const { teamName, description, projectName, teamLead, teamMembers } =
       req.body;
