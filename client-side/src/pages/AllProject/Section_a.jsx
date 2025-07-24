@@ -12,7 +12,7 @@ const Section_a = () => {
   const [deleteId, setDeleteId] = useState(null);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [deleting, setDeleting] = useState(false);
-  const [projectMemberList, setProjectMemberList] = useState([])
+  const [projectMemberList, setProjectMemberList] = useState('')
 
   console.log(projects, "====projects");
 
@@ -25,11 +25,6 @@ const Section_a = () => {
         const response = await apiHandler.GetApi(api_url.getAllProjects, token);
         if (Array.isArray(response.projects)) {
           setProjects(response.projects);
-//           const currentProject = projects.find(p => p.project_id === 'Pr-10'); 
-
-// const teamDetails = getProjectTeamDetails(currentProject, teamMember);
-
-console.log(teamDetails);
         } else {
           setError(response?.message || "Failed to fetch projects");
         }
