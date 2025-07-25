@@ -16,8 +16,6 @@ exports.createTask = async (req, res) => {
       return res.status(400).json({ message: "Title is required." });
     }
 
-    console.log("req.user from token:", req.user);
-
     // Check if the provided teamMemberId exists
     const employee = await Employee.findOne({ teamMemberId: assignedTo });
     if (!employee) {
