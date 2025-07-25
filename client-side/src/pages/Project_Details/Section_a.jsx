@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { CheckCircle, Edit, Trash2, User, CalendarDays } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useState } from "react";
@@ -7,10 +7,42 @@ import { apiHandler } from "@/api/ApiHandler";
 
 const Section_a = () => {
   const { state } = useLocation();
-  const project = state?.project;
+  const [project, setProject] = useState(state?.project || null);
   const navigate = useNavigate();
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [allProjects, setAllProjects] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [projectMemberList, setProjectMemberList] = useState([]);
+  const [teamMembersList, setTeamMembersList] = useState([]);
+
+
+  useEffect(() => {
+    const fetchTeamMembers = async () => {
+      const token = localStorage.getItem("token");
+      try {
+        const res = await apiHandler.GetApi(api_url.getTeamMember, token);
+        if (Array.isArray(res)) {
+          setTeamMembersList(res);
+        }
+      } catch (err) {
+        console.error("Failed to fetch team members", err);
+      }
+    };
+    fetchTeamMembers();
+  }, []);
+
+  // ✅ Match project.team_members with names
+  useEffect(() => {
+    if (project?.team_members?.length && teamMembersList.length) {
+      const matched = project.team_members.map((id) => {
+        const found = teamMembersList.find((m) => m.teamMemberId === id);
+        return found ? { id, name: found.name } : null;
+      }).filter(Boolean); // remove nulls
+      setProjectMemberList(matched);
+    }
+  }, [project, teamMembersList]);
 
   if (!project) {
     return (
@@ -19,6 +51,28 @@ const Section_a = () => {
       </div>
     );
   }
+
+
+  useEffect(() => {
+    const fetchProjects = async () => {
+      setLoading(true);
+      setError("");
+      const token = localStorage.getItem("token");
+      try {
+        const response = await apiHandler.GetApi(api_url.getAllProjects, token);
+        if (Array.isArray(response.projects)) {
+          setAllProjects(response.projects);
+        } else {
+          setError(response?.message || "Failed to fetch projects");
+        }
+      } catch (err) {
+        setError("Failed to fetch projects");
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchProjects();
+  }, []);
 
   const handleDelete = async () => {
     setDeleting(true);
@@ -46,7 +100,7 @@ const Section_a = () => {
       <div className="bg-white p-6 rounded-lg shadow-sm">
         <div className="mb-6 flex items-center gap-2">
           <button
-            onClick={() => navigate(-1)}
+            onClick={() => navigate('/AllProject')}
             className="text-gray-500 hover:text-black text-xl font-semibold"
           >
             &larr;
@@ -74,7 +128,18 @@ const Section_a = () => {
             <button className="flex items-center gap-1 bg-green-100 text-green-700 text-sm px-3 py-1 rounded-full">
               <CheckCircle className="w-4 h-4" /> Mark as Completed
             </button>
-            <Edit className="text-gray-500 w-4 h-4 cursor-pointer" />
+
+            <Edit
+              className="text-gray-500 w-4 h-4 cursor-pointer"
+              onClick={() =>
+                navigate(`/edit-project/${project.project_id}`, {
+                  state: {
+                    project,
+                    projectMemberList,
+                  },
+                })
+              }
+            />
             <Trash2
               className="text-red-500 w-4 h-4 cursor-pointer"
               onClick={() => setShowDeleteDialog(true)}
@@ -146,16 +211,19 @@ const Section_a = () => {
           </div>
 
           <div className="ml-4 mt-2 text-sm text-gray-700">
-            {project?.team_members?.length > 0 ? (
+            {projectMemberList.length > 0 ? (
               <ul className="list-disc list-inside">
-                {project.team_members.map((memberId, index) => (
-                  <li key={index}>{memberId}</li>
+                {projectMemberList.map((member, index) => (
+                  <li key={index}>
+                    <span className="font-medium text-gray-900  capitalize">{member.name}</span> <span className="text-gray-500">({member.id})</span>
+                  </li>
                 ))}
               </ul>
             ) : (
               <p>No members assigned.</p>
             )}
           </div>
+
         </div>
 
 

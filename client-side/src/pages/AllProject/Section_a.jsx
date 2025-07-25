@@ -12,9 +12,7 @@ const Section_a = () => {
   const [deleteId, setDeleteId] = useState(null);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [deleting, setDeleting] = useState(false);
-  const [projectMemberList, setProjectMemberList] = useState('')
 
-  console.log(projects, "====projects");
 
   useEffect(() => {
     const fetchProjects = async () => {
@@ -104,13 +102,13 @@ const Section_a = () => {
                     </p>
                   </div>
                   <span className="bg-blue-500 text-white text-xs font-medium px-3  py-1 rounded-full capitalize">
-                    {project?.project_status || project.status}
+                    {project.project_status || project.status}
                   </span>
                 </div>
 
                 <div className="flex items-center text-sm text-gray-600 gap-1 mt-5">
                   <Users size={16} />
-                  <span>{project?.team_members?.length || 0} members</span>
+                  <span>{project?.team_members.length || 0} members</span>
                 </div>
               </div>
             ))}

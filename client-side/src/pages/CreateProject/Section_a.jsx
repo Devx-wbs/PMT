@@ -123,7 +123,6 @@ const Section_a = () => {
       team_members: selectedMermber
     };
 
-    console.log(obj, "obj====>");
 
     try {
       const response = await apiHandler.postApiWithToken(
@@ -131,7 +130,6 @@ const Section_a = () => {
         obj,
         token
       );
-      console.log(response, "response===>");
 
       alert(response?.message);
       if (response.success) {

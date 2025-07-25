@@ -316,21 +316,20 @@ const Section_a = () => {
                   </DialogTrigger>
                   <DialogContent className="sm:max-w-[420px] ">
                     <DialogHeader>
-                      <DialogTitle>Are you absolutely sure?</DialogTitle>
-                      <DialogDescription>
-                        This action cannot be undone. This will permanently
-                        delete this team member.
+                      <DialogTitle className='text-lg font-bold mb-2'>Delete Team Member</DialogTitle>
+                      <DialogDescription className='mb-4'>
+                        Are you sure you want to delete this team member? This action cannot be undone.
                       </DialogDescription>
                     </DialogHeader>
                     <DialogFooter>
-                      <div className="flex justify-center items-center gap-4 w-full">
+                      <div className=" items-center  w-full flex justify-end gap-4">
                         <DialogClose asChild>
-                          <Button className="w-28" variant="outline">
+                          <Button className="px-6 py-2 rounded bg-gray-200 hover:bg-gray-300" variant="outline">
                             Cancel
                           </Button>
                         </DialogClose>
                         <Button
-                          className="w-28"
+                          className=" px-6 py-2 rounded bg-red-600 text-white hover:bg-red-700"
                           variant="destructive"
                           onClick={() => handleDelete(member.teamMemberId)}
                         >
@@ -346,7 +345,7 @@ const Section_a = () => {
                   <Users className="w-5 h-5 text-blue-300" />
                 </div>
                 <div>
-                  <h3 className="text-lg font-semibold text-gray-900">
+                  <h3 className="text-lg font-semibold text-gray-900 capitalize">
                     {member.name}
                   </h3>
                   <p className="text-sm text-gray-500">{member.role}</p>

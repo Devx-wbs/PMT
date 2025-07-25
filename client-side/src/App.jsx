@@ -15,6 +15,7 @@ import CreateProject from "./pages/CreateProject";
 import EmpLogin from "./pages/Login/emp_login";
 import AllTask from "./pages/AllTask";
 import ProjectDetails from "./pages/ProjectDetails";
+import EditProjectDetails from "./pages/EditProjectDetails";
 
 function App() {
   return (
@@ -106,6 +107,18 @@ function App() {
               </MainLayout>
             </ProtectedRoute>
           } />
+
+           <Route
+          path="/edit-project/:id"
+          element={
+            <ProtectedRoute>
+              <MainLayout>
+                <EditProjectDetails />
+              </MainLayout>
+            </ProtectedRoute>
+          } />
+
+          
 
         <Route
           path="/Profile"
