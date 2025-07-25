@@ -116,14 +116,14 @@ exports.login = async (req, res) => {
       let isTokenValid = false;
       if (token) {
         try {
-          jwt.verify(token, "secret123");
+          jwt.verify(token, process.env.JWT_SECRET);
           isTokenValid = true;
         } catch (err) {
           isTokenValid = false;
         }
       }
       if (!isTokenValid) {
-        token = jwt.sign({ id: userWithPassword._id }, "secret123", {
+        token = jwt.sign({ id: userWithPassword._id }, process.env.JWT_SECRET, {
           expiresIn: "7d",
         });
         userWithPassword.token = token;
@@ -152,14 +152,14 @@ exports.login = async (req, res) => {
       let isTokenValid = false;
       if (token) {
         try {
-          jwt.verify(token, "secret123");
+          jwt.verify(token, process.env.JWT_SECRET);
           isTokenValid = true;
         } catch (err) {
           isTokenValid = false;
         }
       }
       if (!isTokenValid) {
-        token = jwt.sign({ id: employee._id }, "secret123", {
+        token = jwt.sign({ id: employee._id }, process.env.JWT_SECRET, {
           expiresIn: "7d",
         });
         employee.token = token;

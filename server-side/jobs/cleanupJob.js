@@ -11,14 +11,18 @@ async function cleanupExpiredEmployees() {
       passwordExpiresAt: { $lt: now },
     });
     if (result.deletedCount > 0) {
-      console.log(
-        `[CleanupJob] Deleted ${
-          result.deletedCount
-        } expired employee(s) at ${now.toISOString()}`
-      );
+      if (process.env.NODE_ENV !== 'production') {
+        console.log(
+          `[CleanupJob] Deleted ${
+            result.deletedCount
+          } expired employee(s) at ${now.toISOString()}`
+        );
+      }
     }
   } catch (err) {
-    console.error("[CleanupJob] Error deleting expired employees:", err);
+    if (process.env.NODE_ENV !== 'production') {
+      console.error("[CleanupJob] Error deleting expired employees:", err);
+    }
   }
 }
 

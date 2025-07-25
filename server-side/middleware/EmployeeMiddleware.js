@@ -6,7 +6,7 @@ const employeeAuthMiddleware = async (req, res, next) => {
     if (!token) return res.status(401).json({ message: 'Access denied' });
 
     try {
-        const decoded = jwt.verify(token, 'secret123'); 
+        const decoded = jwt.verify(token, process.env.JWT_SECRET); 
         const employee = await Employee.findById(decoded.id).select('-password');
 
         if (!employee) {
